@@ -49,3 +49,26 @@ apigee_monetization.purchased:
     _title: "Purchased Packages"
   requirements:
     _permission: 'access purchased monetization packages'
+
+apigee_monetization.my_subscriptions:
+  path: /user/monetization/subscriptions
+  defaults:
+    _controller: \Drupal\apigee_m10n\Controller\PackagesController::mySubscriptions
+  requirements:
+    _permission: 'access subscriptions'
+
+entity.subscription.collection_by_developer:
+  path: '/user/{user}/monetization/subscriptions'
+  defaults:
+    _controller: '\Drupal\apigee_m10n\Entity\ListBuilder\SubscriptionListBuilderForDeveloper::render'
+    _title_callback: '\Drupal\apigee_m10n\Entity\ListBuilder\SubscriptionListBuilderForDeveloper::getPageTitle'
+  requirements:
+    user: '\d+'
+    _permission: 'access subscriptions'
+
+apigee_monetization.subscribe_to_plan:
+  path: '/user/subscription-test'
+  defaults:
+    _form: '\Drupal\apigee_m10n\Form\SubscribeToPlanTestForm'
+  requirements:
+    _permission: 'administer apigee monetization'

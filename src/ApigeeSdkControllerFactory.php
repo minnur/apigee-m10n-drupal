@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright 2018 Google Inc.
  *
@@ -24,6 +25,7 @@ use Apigee\Edge\Api\Monetization\Controller\ApiPackageController;
 use Apigee\Edge\Api\Monetization\Controller\ApiPackageControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\CompanyPrepaidBalanceController;
 use Apigee\Edge\Api\Monetization\Controller\CompanyPrepaidBalanceControllerInterface;
+use Apigee\Edge\Api\Monetization\Controller\DeveloperAcceptedRatePlanController;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperPrepaidBalanceController;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperPrepaidBalanceControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\RatePlanController;
@@ -40,6 +42,8 @@ use Drupal\user\UserInterface;
 class ApigeeSdkControllerFactory implements ApigeeSdkControllerFactoryInterface {
 
   /**
+   * The Apigee Edge SDK connector.
+   *
    * @var \Drupal\apigee_edge\SDKConnectorInterface
    */
   protected $sdk_connector;
@@ -62,67 +66,73 @@ class ApigeeSdkControllerFactory implements ApigeeSdkControllerFactoryInterface 
    * Monetization constructor.
    *
    * @param \Drupal\apigee_edge\SDKConnectorInterface $sdk_connector
+   *   The Apigee Edge SDK connector.
    */
   public function __construct(SDKConnectorInterface $sdk_connector) {
-    $this->sdk_connector  = $sdk_connector;
-    $this->org            = $sdk_connector->getOrganization();
-    $this->client         = $sdk_connector->getClient();
+    $this->sdk_connector = $sdk_connector;
+    $this->org = $sdk_connector->getOrganization();
+    $this->client = $sdk_connector->getClient();
   }
 
   /**
    * {@inheritdoc}
    */
   public function organizationController(): OrganizationControllerInterface {
-    return
-      new OrganizationController(
-        $this->client
-      );
+    return new OrganizationController($this->client);
   }
 
   /**
    * {@inheritdoc}
    */
   public function developerBalanceController(UserInterface $developer): DeveloperPrepaidBalanceControllerInterface {
-    return
-      new DeveloperPrepaidBalanceController(
-        $developer->getEmail(),
-        $this->org,
-        $this->client
-      );
+    return new DeveloperPrepaidBalanceController(
+      $developer->getEmail(),
+      $this->org,
+      $this->client
+    );
   }
 
   /**
    * {@inheritdoc}
    */
   public function companyBalanceController(CompanyInterface $company): CompanyPrepaidBalanceControllerInterface {
-    return
-      new CompanyPrepaidBalanceController(
-        $company->getLegalName(),
-        $this->org,
-        $this->client
-      );
+    return new CompanyPrepaidBalanceController(
+      $company->getLegalName(),
+      $this->org,
+      $this->client
+    );
   }
 
   /**
    * {@inheritdoc}
    */
   public function apiPackageController(): ApiPackageControllerInterface {
-    return
-      new ApiPackageController(
-        $this->org,
-        $this->client
-      );
+    return new ApiPackageController(
+      $this->org,
+      $this->client
+    );
   }
 
   /**
    * {@inheritdoc}
    */
   public function packageRatePlanController($package_id): RatePlanControllerInterface {
-    return
-      new RatePlanController(
-        $package_id,
-        $this->org,
-        $this->client
-      );
+    return new RatePlanController(
+      $package_id,
+      $this->org,
+      $this->client
+    );
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function developerAcceptedRatePlanController(string $developer_email): DeveloperAcceptedRatePlanController {
+    return new DeveloperAcceptedRatePlanController(
+      'chrisnovak@google.com',//$developer_email,
+      $this->org,
+      $this->client
+    );
+  }
+
 }

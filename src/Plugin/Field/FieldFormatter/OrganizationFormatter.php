@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Copyright 2018 Google Inc.
  *
@@ -17,18 +16,18 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-namespace Drupal\apigee_m10n;
+namespace Drupal\apigee_m10n\Plugin\Field\FieldFormatter;
 
 /**
- * Environment variable keys.
+ * Plugin implementation of the 'apigee_organization' formatter.
  *
- * @package Drupal\apigee_m10n
+ * @FieldFormatter(
+ *   id = "apigee_organization",
+ *   label = @Translation("Organization name"),
+ *   field_types = {
+ *     "apigee_organization"
+ *   }
+ * )
  */
-abstract class EnvironmentVariable {
-  public static $APIGEE_EDGE_ENDPOINT = 'APIGEE_EDGE_ENDPOINT';
-  public static $APIGEE_EDGE_ORGANIZATION = 'APIGEE_EDGE_ORGANIZATION';
-  public static $APIGEE_EDGE_USERNAME = 'APIGEE_EDGE_USERNAME';
-  public static $APIGEE_EDGE_PASSWORD = 'APIGEE_EDGE_PASSWORD';
-  public static $APIGEE_INTEGRATION_ENABLE = 'APIGEE_INTEGRATION_ENABLE';
-
+class OrganizationFormatter extends NameFormatterBase {
 }

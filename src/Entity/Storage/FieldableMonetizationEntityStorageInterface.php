@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Copyright 2018 Google Inc.
  *
@@ -17,18 +16,15 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-namespace Drupal\apigee_m10n;
+namespace Drupal\apigee_m10n\Entity\Storage;
+
+use Drupal\Core\Entity\DynamicallyFieldableEntityStorageInterface;
+use Drupal\Core\Entity\FieldableEntityStorageInterface;
+use Drupal\Core\Entity\Schema\DynamicallyFieldableEntityStorageSchemaInterface;
 
 /**
- * Environment variable keys.
- *
- * @package Drupal\apigee_m10n
+ * Defines an interface for fieldable Apigee Edge entities.
  */
-abstract class EnvironmentVariable {
-  public static $APIGEE_EDGE_ENDPOINT = 'APIGEE_EDGE_ENDPOINT';
-  public static $APIGEE_EDGE_ORGANIZATION = 'APIGEE_EDGE_ORGANIZATION';
-  public static $APIGEE_EDGE_USERNAME = 'APIGEE_EDGE_USERNAME';
-  public static $APIGEE_EDGE_PASSWORD = 'APIGEE_EDGE_PASSWORD';
-  public static $APIGEE_INTEGRATION_ENABLE = 'APIGEE_INTEGRATION_ENABLE';
+interface FieldableMonetizationEntityStorageInterface extends FieldableEntityStorageInterface, DynamicallyFieldableEntityStorageInterface, DynamicallyFieldableEntityStorageSchemaInterface {
 
 }

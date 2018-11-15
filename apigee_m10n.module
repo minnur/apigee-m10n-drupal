@@ -61,7 +61,37 @@ function apigee_m10n_theme($existing, $type, $theme, $path) {
     'api_product' => [
       'variables' => ['api_product' => NULL],
     ],
+    'rate_plan_detail' => [
+      'variables' => ['detail' => NULL],
+      'template' => 'rate-plan-detail',
+    ],
   ];
+}
+
+/**
+ * Prepares variables for rate-plan templates.
+ *
+ * Default template: rate-plan.html.twig.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - elements: An array of elements to display in view mode.
+ *   - rate_plan: The Apigee  package rate plan entity.
+ *   - view_mode: View mode; e.g., 'full', 'teaser', etc.
+ *   - url: The canonical URL to view the plan directly.
+ *
+ * @throws \Drupal\Core\Entity\EntityMalformedException
+ */
+function template_preprocess_rate_plan(&$variables) {
+  $variables['view_mode'] = $variables['elements']['#view_mode'];
+
+  $variables['rate_plan'] = $variables['elements']['#rate_plan'];
+  /** @var \Drupal\apigee_m10n\Entity\RatePlanInterface $rate_plan */
+  $rate_plan = $variables['rate_plan'];
+
+  $variables['url'] = $rate_plan->toUrl('canonical', [
+    'language' => $rate_plan->language(),
+  ]);
 }
 
 /**
@@ -99,4 +129,19 @@ function apigee_m10n_preprocess_product_list(&$variables) {
       '#api_product' => $api_product,
     ];
   });
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK().
+ */
+function apigee_m10n_theme_suggestions_rate_plan(array $variables) {
+  $suggestions = [];
+  $rate_plan = $variables['elements']['#rate_plan'];
+  $sanitized_view_mode = strtr($variables['elements']['#view_mode'], '.', '_');
+  $plan_id = $rate_plan->id();
+  $bundle = $rate_plan->bundle();
+  foreach ([$sanitized_view_mode, $bundle, $bundle . '__' . $sanitized_view_mode, $plan_id, $plan_id . '__' . $sanitized_view_mode] as $suffix) {
+    $suggestions[] = 'apigee_rate_plan__' . $suffix;
+  }
+  return $suggestions;
 }
