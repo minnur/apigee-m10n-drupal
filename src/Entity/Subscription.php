@@ -40,9 +40,13 @@ use Drupal\Core\Entity\EntityTypeInterface;
  *     "access" = "Drupal\apigee_edge\Entity\EdgeEntityAccessControlHandler",
  *     "permission_provider" = "Drupal\apigee_edge\Entity\EdgeEntityPermissionProviderBase",
  *     "list_builder" = "Drupal\apigee_m10n\Entity\ListBuilder\SubscriptionListBuilder",
+ *     "form" = {
+ *       "unsubscribe" = "Drupal\apigee_m10n\Entity\Form\UnsubscribeForm",
+ *     },
  *   },
  *   links = {
  *     "collection-by-developer" = "/user/{user}/monetization/subscriptions",
+ *     "unsubscribe-form" = "/user/{user}/monetization/subscription/{subscription}/unsubscribe",
  *   },
  *   entity_keys = {
  *     "id" = "id",
@@ -73,14 +77,14 @@ class Subscription extends AcceptedRatePlan implements SubscriptionInterface {
    */
   protected static function propertyToFieldStaticMap(): array {
     return [
-      'startDate' => 'timestamp',
-      'endDate' => 'timestamp',
-      'created' => 'timestamp',
-      'quotaTarget' => 'integer',
-      'ratePlan' => 'entity_reference',
-      'updated' => 'timestamp',
-      'renewalDate' => 'timestamp',
-      'nextCycleStartDate' => 'timestamp',
+      'startDate'            => 'timestamp',
+      'endDate'              => 'timestamp',
+      'created'              => 'timestamp',
+      'quotaTarget'          => 'integer',
+      'ratePlan'             => 'entity_reference',
+      'updated'              => 'timestamp',
+      'renewalDate'          => 'timestamp',
+      'nextCycleStartDate'   => 'timestamp',
       'nextRecurringFeeDate' => 'timestamp',
       'prevRecurringFeeDate' => 'timestamp',
     ];
@@ -92,7 +96,6 @@ class Subscription extends AcceptedRatePlan implements SubscriptionInterface {
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
     /** @var \Drupal\Core\Field\BaseFieldDefinition[] $definitions */
     $definitions = self::traitBaseFieldDefinitions($entity_type);
-
     return $definitions;
   }
 
@@ -112,7 +115,6 @@ class Subscription extends AcceptedRatePlan implements SubscriptionInterface {
     else {
       $this->traitSet($field_name, $value, $notify);
     }
-
     return $this;
   }
 
@@ -143,6 +145,53 @@ class Subscription extends AcceptedRatePlan implements SubscriptionInterface {
     return $return;
   }
 
+  /**
+   * Get subscription status.
+   *
+   * @param $subscription
+   *
+   * @return string
+   */
+  public function getSubscriptionStatus() {
+    $org_timezone = $this->getRatePlan()->getOrganization()->getTimezone();
+    $today = new \DateTime('today', $org_timezone);
+
+    // If rate plan ended before today, the status is ended.
+    $plan_end_date = $this->getRatePlan()->getEndDate();
+    if (!empty($plan_end_date) && $plan_end_date < $today) {
+      return SubscriptionInterface::STATUS_ENDED;
+    }
+    // If the developer ended the plan before today, the plan has ended.
+    $developer_plan_end_date = $this->getEndDate();
+    if (!empty($developer_plan_end_date) && $developer_plan_end_date < $today) {
+      return SubscriptionInterface::STATUS_ENDED;
+    }
+
+    // If the start date is later than today, it is a future plan.
+    $developer_plan_start_date = $this->getStartDate();
+    if (!empty($developer_plan_start_date) && $developer_plan_start_date > $today) {
+      return SubscriptionInterface::STATUS_FUTURE;
+    }
+
+    return SubscriptionInterface::STATUS_ACTIVE;
+  }
+
+  /**
+   * Check if subscription is active.
+   *
+   * @return bool
+   */
+  public function isSubscriptionActive() {
+    return $this->getSubscriptionStatus() === SubscriptionInterface::STATUS_ACTIVE;
+  }
+
+  public function isDefaultRevision($new_value = NULL) {
+    return TRUE;
+  }
+
+  public static function loadRatePlansByDeveloperEmail(string $developer_email): array {
+    // TODO: Implement loadRatePlansByDeveloperEmail() method.
+  }
 
   /**
    * Array of properties that should not be exposed as base fields.
@@ -152,14 +201,6 @@ class Subscription extends AcceptedRatePlan implements SubscriptionInterface {
    */
   protected static function propertyToFieldBlackList(): array {
     return [];
-  }
-
-  public function isDefaultRevision($new_value = NULL) {
-    return TRUE;
-  }
-
-  public static function loadRatePlansByDeveloperEmail(string $developer_email): array {
-    // TODO: Implement loadRatePlansByDeveloperEmail() method.
   }
 
 }

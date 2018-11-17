@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Copyright 2018 Google Inc.
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -19,11 +19,14 @@
 
 namespace Drupal\apigee_m10n\Controller;
 
+use Apigee\Edge\Api\Monetization\Controller\RatePlanControllerInterface;
 use Drupal\apigee_m10n\ApigeeSdkControllerFactoryInterface;
 use Drupal\apigee_m10n\Entity\RatePlan;
 use Drupal\apigee_m10n\Entity\Subscription;
 use Drupal\apigee_m10n\Form\RatePlanConfigForm;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\user\Entity\User;
 use Drupal\user\UserInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -40,22 +43,23 @@ class PackagesController extends ControllerBase {
    *
    * @var \Drupal\apigee_m10n\ApigeeSdkControllerFactoryInterface
    */
-  protected $sdkControllerFactory;
+  protected $controller_factory;
 
   /**
-   * Constructs a new ExampleController object.
+   * PackagesController constructor.
+   *
+   * @param \Drupal\apigee_m10n\ApigeeSdkControllerFactoryInterface $sdk_controller_factory
+   *   The SDK controller factory.
    */
   public function __construct(ApigeeSdkControllerFactoryInterface $sdk_controller_factory) {
-    $this->sdkControllerFactory = $sdk_controller_factory;
+    $this->controller_factory = $sdk_controller_factory;
   }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('apigee_m10n.sdk_controller_factory')
-    );
+    return new static($container->get('apigee_m10n.sdk_controller_factory'));
   }
 
   /**
@@ -73,14 +77,14 @@ class PackagesController extends ControllerBase {
   }
 
   /**
-   * Redirect to the users purchased page.
+   * Redirect to the users subscriptions page.
    *
    * @return \Symfony\Component\HttpFoundation\RedirectResponse
-   *   A redirect to the current user's purchased plan page.
+   *   A redirect to the current user's subscriptions page.
    */
-  public function myPurchased(): RedirectResponse {
+  public function mySubscriptions(): RedirectResponse {
     return $this->redirect(
-      'apigee_monetization.purchased',
+      'entity.subscription.collection_by_developer',
       ['user' => \Drupal::currentUser()->id()],
       ['absolute' => TRUE]
     );
@@ -97,83 +101,39 @@ class PackagesController extends ControllerBase {
    */
   public function catalogPage(UserInterface $user = NULL) {
     // Get the package controller.
-    $package_controller = $this->sdkControllerFactory->apiPackageController();
-
-    // Initialize empty packages array in case API call fails.
-    $packages = [];
-
-    try {
-      // Load purchased packages for comparison.
-      $packages = $package_controller->getAvailableApiPackagesByDeveloper($user->getEmail(), TRUE, TRUE);
-    }
-    catch (\Exception $e) {
-      $this->getLogger('apigee_monetization')->error($e->getMessage());
-      $this->messenger()->addError('Unable to retrieve packages: ' . $e->getMessage());
-    }
+    $package_controller = $this->controller_factory->apiPackageController();
+    // Load purchased packages for comparison.
+    $packages = $package_controller->getAvailableApiPackagesByDeveloper($user->getEmail(), TRUE, TRUE);
 
     // Get the view mode to use for rate plans.
     $view_mode = $this->config(RatePlanConfigForm::CONFIG_NAME)->get('product_rate_plan_view_mode');
     // Get an entity view builder for rate plans.
     $rate_plan_view_builder = $this->entityTypeManager()->getViewBuilder('rate_plan', $view_mode);
 
-    // Initialize empty plans array in case API call fails.
-    $plans = [];
-
-    try {
-      // Load plans for each package.
-      $plans = array_map(function($package) use ($rate_plan_view_builder) {
-        // Load the rate plans.
-        $package_rate_plans = RatePlan::loadPackageRatePlans($package->id());
-        if (!empty($package_rate_plans)) {
-          // Return a render-able list of rate plans.
-          return $rate_plan_view_builder->viewMultiple($package_rate_plans);
-        }
-      }, $packages);
-    }
-    catch (\Exception $e) {
-      $this->getLogger('apigee_monetization')->error($e->getMessage());
-      $this->messenger()->addError('Unable to retrieve plans: ' . $e->getMessage());
-    }
+    // Load plans for each package.
+    $plans = array_map(function ($package) use ($rate_plan_view_builder) {
+      // Load the rate plans.
+      $package_rate_plans = RatePlan::loadPackageRatePlans($package->id());
+      if (!empty($package_rate_plans)) {
+        // Return a render-able list of rate plans.
+        return $rate_plan_view_builder->viewMultiple($package_rate_plans);
+      }
+    }, $packages);
 
     return [
       'package_list' => [
         '#theme' => 'package_list',
         '#package_list' => $packages,
         '#plan_list' => $plans,
-      ]
+      ],
     ];
-  }
-
-  /**
-   * Gets a list of purchased packages for this user.
-   *
-   * @param \Drupal\user\UserInterface|null $user
-   *   The drupal user/developer.
-   *
-   * @return array
-   *   The pager render array.
-   */
-  public function purchasedPage(UserInterface $user = NULL) {
-    return ['#markup' => $this->t('Hello World')];
-  }
-
-  /**
-   * Redirect to the users subscriptions page.
-   *
-   * @return \Symfony\Component\HttpFoundation\RedirectResponse
-   */
-  public function mySubscriptions(): RedirectResponse {
-    return $this->redirect(
-      'entity.subscription.collection_by_developer',
-      ['user' => \Drupal::currentUser()->id()],
-      ['absolute' => TRUE]
-    );
   }
 
   /**
    * Get a rate plan controller.
    *
-   * @param $package_id
+   * @param string $package_id
+   *   The package ID.
    *
    * @return \Apigee\Edge\Api\Monetization\Controller\RatePlanControllerInterface
    *   The rate plan controller.
@@ -184,7 +144,7 @@ class PackagesController extends ControllerBase {
 
     // Controlelrs should be cached per package id.
     if (!isset($controllers[$package_id])) {
-      $controllers[$package_id] = $this->sdkControllerFactory->packageRatePlanController($package_id);
+      $controllers[$package_id] = $this->controller_factory->packageRatePlanController($package_id);
     }
 
     return $controllers[$package_id];

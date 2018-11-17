@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Copyright 2018 Google Inc.
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -17,29 +17,17 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+namespace Drupal\Tests\apigee_m10n\Kernel\Plugin\Field\FieldFormatter;
+
+use Drupal\Tests\apigee_m10n\Kernel\MonetizationKernelTestBase;
 
 /**
- * @file
- * Searches for the core bootstrap file.
+ * Test the `apigee_api_package` field formatter.
+ *
+ * @group apigee_m10n
+ * @group apigee_m10n_kernel
  */
+class ApiPackageFormatterKernelTest extends MonetizationKernelTestBase {
+  // @todo: Implement tests for Apigee field formatters.
 
-$dir = __DIR__;
-
-// Match against previous dir for Windows.
-$previous_dir = '';
-
-while ($dir = dirname($dir)) {
-  // We've reached the root.
-  if ($dir === $previous_dir) {
-    break;
-  }
-
-  $previous_dir = $dir;
-
-  if (is_file($dir . '/core/tests/bootstrap.php')) {
-    require_once $dir . '/core/tests/bootstrap.php';
-    return;
-  }
 }
-
-throw new RuntimeException('Unable to load core bootstrap.php.');

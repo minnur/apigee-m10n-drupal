@@ -1,5 +1,6 @@
 <?php
-/**
+
+/*
  * Copyright 2018 Google Inc.
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -16,10 +17,9 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-namespace Drupal\Tests\apigee_m10n\Functional;
+namespace Drupal\Tests\apigee_m10n\Kernel\Controller;
 
-use Apigee\Edge\Api\Monetization\Entity\ApiPackage;
-use Apigee\Edge\Api\Monetization\Entity\ApiProduct;
+use Drupal\apigee_m10n\Controller\PackagesController;
 use Drupal\Tests\apigee_m10n\Kernel\MonetizationKernelTestBase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -39,12 +39,12 @@ class PackageControllerKernelTest extends MonetizationKernelTestBase {
   /**
    * Drupal user.
    *
-   * @var \Drupal\user\UserInterface $account
+   * @var \Drupal\user\UserInterface
    */
   protected $account;
 
   /**
-   * (@inheritdoc}
+   * {@inheritdoc}
    */
   protected function setUp() {
     parent::setUp();
@@ -64,26 +64,6 @@ class PackageControllerKernelTest extends MonetizationKernelTestBase {
   }
 
   /**
-   * {@inheritdoc}
-   *
-   * @throws \Exception
-   */
-  public function tearDown() {
-    // Prepare for deleting the developer.
-    $this->queueDeveloperResponse($this->account);
-    $this->queueDeveloperResponse($this->account);
-
-    // We have to remove the developer we created so it is removed from Apigee.
-    $this->account->delete();
-
-    // Currently we can't delete users with a balance so we can expect an error
-    // was logged.
-    $this->assertNoClientError();
-
-    parent::tearDown();
-  }
-
-  /**
    * Tests the redirects for accessing the current users packages.
    *
    * Some drivers like (selenium 2) don't support `getStatusCode` so this test
@@ -95,11 +75,9 @@ class PackageControllerKernelTest extends MonetizationKernelTestBase {
    * @covers ::myPurchased
    */
   public function testMyRedirects() {
-    /**
-     * ## Test the packages redirect. ##
-     */
+    // Test the packages redirect.
     // Queue up a monetized org response.
-    $this->stack->queueFromResponseFile('get_monetized_org');
+    $this->stack->queueMockResponse('get_monetized_org');
     $request = Request::create('/user/monetization/packages', 'GET');
 
     /** @var \Symfony\Component\HttpKernel\HttpKernelInterface $kernel */
@@ -107,11 +85,9 @@ class PackageControllerKernelTest extends MonetizationKernelTestBase {
     $response = $kernel->handle($request);
 
     static::assertSame(Response::HTTP_FOUND, $response->getStatusCode());
-    static::assertSame('http://localhost/user/'.$this->account->id().'/monetization/packages', $response->headers->get('location'));
+    static::assertSame('http://localhost/user/' . $this->account->id() . '/monetization/packages', $response->headers->get('location'));
 
-    /**
-     * ## Test the purchased packages redirect. ##
-     */
+    // Test the purchased packages redirect.
     // Queue up a monetized org response.
     $request = Request::create('/user/monetization/packages/purchased', 'GET');
 
@@ -120,49 +96,72 @@ class PackageControllerKernelTest extends MonetizationKernelTestBase {
     $response = $kernel->handle($request);
 
     static::assertSame(Response::HTTP_FOUND, $response->getStatusCode());
-    static::assertSame('http://localhost/user/'.$this->account->id().'/monetization/packages/purchased', $response->headers->get('location'));
+    static::assertSame('http://localhost/user/' . $this->account->id() . '/monetization/packages/purchased', $response->headers->get('location'));
   }
 
   /**
    * Tests the `monetization-packages` response.
    */
   public function testPackageResponse() {
-    $packages = [];
-    $package_names = [
-      $this->randomMachineName(),
-      $this->randomMachineName(),
-      $this->randomMachineName(),
+    /** @var \Apigee\Edge\Api\Monetization\Entity\ApiPackage[] $packages */
+    $packages = [
+      $this->createPackage(),
+      $this->createPackage(),
     ];
 
-    foreach ($package_names as $name) {
-      $product_name = $name . 'Product';
+    $this->stack
+      ->queueMockResponse(['get_monetization_packages' => ['packages' => $packages]]);
 
-      $packages[] = new ApiPackage([
-        'id' => strtolower($name),
-        'name' => $name,
-        'description' => $name . ' description.',
-        'displayName' => $name . ' display name',
-        'apiProducts' => [new ApiProduct([
-          'id' => strtolower($product_name),
-          'name' => $product_name,
-          'description' => $product_name . ' description.',
-          'displayName' => $product_name . ' display name',
-        ])]
-      ]);
+    $response = (string) $this->sdk_connector
+      ->getClient()
+      ->get("/mint/organizations/{$this->sdk_connector->getOrganization()}/monetization-packages")
+      ->getBody();
+
+    foreach ($packages as $package) {
+      static::assertContains($package->id(), $response);
+      static::assertContains($package->getDisplayName(), $response);
+      static::assertContains($package->getName(), $response);
+      static::assertContains($package->getDescription(), $response);
     }
+
+    $data = json_decode($response, TRUE);
+    static::assertNotEmpty($data);
+  }
+
+  /**
+   * Tests the `monetization-packages` response.
+   *
+   * @throws \Exception
+   */
+  public function testPackageController() {
+
+    $packages = [
+      $this->createPackage(),
+      $this->createPackage(),
+    ];
+    $plans = [];
+    foreach ($packages as $package) {
+      $plans[$package->id()][] = $this->createPackageRatePlan($package);
+    }
+
+    $page_controller = PackagesController::create($this->container);
 
     $this->stack
-      ->queueFromResponseFile(['get_monetization_packages' => ['packages' => $packages]]);
+      ->queueMockResponse(['get_monetization_packages' => ['packages' => $packages]]);
 
-    $response = (string) $this->sdk_connector->getClient()->get('get-monetization-packages')->getBody();
-
-    foreach ($package_names as $name) {
-      static::assertContains($name, $response);
-      static::assertContains($name . ' display name', $response);
-      static::assertContains(strtolower($name), $response);
-      static::assertContains($name . 'Product', $response);
-      static::assertContains($name . 'Product display name', $response);
-      static::assertContains(strtolower($name . 'Product'), $response);
+    foreach ($packages as $package) {
+      $this->stack
+        ->queueMockResponse(['get_monetization_package_plans' => ['plans' => $plans[$package->id()]]]);
     }
+
+    $renderable = $page_controller->catalogPage($this->account);
+
+    self::assertArrayHasKey($packages[0]->id(), $renderable["package_list"]["#package_list"]);
+    self::assertArrayHasKey($packages[0]->id(), $renderable["package_list"]["#plan_list"]);
+    self::assertArrayHasKey($plans[$packages[0]->id()][0]->id(), $renderable["package_list"]["#plan_list"][$packages[0]->id()]);
+    self::assertArrayHasKey($packages[1]->id(), $renderable["package_list"]["#package_list"]);
+    self::assertArrayHasKey($packages[1]->id(), $renderable["package_list"]["#plan_list"]);
+    self::assertArrayHasKey($plans[$packages[1]->id()][0]->id(), $renderable["package_list"]["#plan_list"][$packages[1]->id()]);
   }
+
 }

@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Copyright 2018 Google Inc.
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -21,7 +21,9 @@ namespace Drupal\apigee_m10n;
 
 use Apigee\Edge\Api\Management\Controller\OrganizationControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\ApiPackageControllerInterface;
+use Apigee\Edge\Api\Monetization\Controller\ApiProductControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\CompanyPrepaidBalanceControllerInterface;
+use Apigee\Edge\Api\Monetization\Controller\DeveloperAcceptedRatePlanController;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperPrepaidBalanceControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\RatePlanControllerInterface;
 use Apigee\Edge\Api\Monetization\Entity\CompanyInterface;
@@ -65,6 +67,14 @@ interface ApigeeSdkControllerFactoryInterface {
   public function companyBalanceController(CompanyInterface $company): CompanyPrepaidBalanceControllerInterface;
 
   /**
+   * Creates a product controller.
+   *
+   * @return \Apigee\Edge\Api\Monetization\Controller\ApiProductControllerInterface
+   *   The controller.
+   */
+  public function apiProductController(): ApiProductControllerInterface;
+
+  /**
    * Creates a package controller.
    *
    * @return \Apigee\Edge\Api\Monetization\Controller\ApiPackageControllerInterface
@@ -79,5 +89,14 @@ interface ApigeeSdkControllerFactoryInterface {
    *   The controller.
    */
   public function packageRatePlanController($package_id): RatePlanControllerInterface;
+
+  /**
+   * Creates a developer accepted rate plan controller.
+   *
+   * @param string $developer_email
+   *
+   * @return \Apigee\Edge\Api\Monetization\Controller\DeveloperAcceptedRatePlanController
+   */
+  public function developerAcceptedRatePlanController(string $developer_email): DeveloperAcceptedRatePlanController;
 
 }

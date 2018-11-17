@@ -1,5 +1,6 @@
 <?php
-/**
+
+/*
  * Copyright 2018 Google Inc.
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -23,9 +24,14 @@ use Drupal\Tests\apigee_m10n\Traits\ApigeeMonetizationTestTrait;
 use Drupal\apigee_m10n\EnvironmentVariable;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 
+/**
+ * The base class for Monetization kernel tests.
+ */
 class MonetizationKernelTestBase extends KernelTestBase {
 
-  use ApigeeMonetizationTestTrait;
+  use ApigeeMonetizationTestTrait {
+    setUp as baseSetUp;
+  }
   use UserCreationTrait;
 
   /**
@@ -43,7 +49,8 @@ class MonetizationKernelTestBase extends KernelTestBase {
 
   /**
    * Whether actual integration tests are enabled.
-   * @var boolean
+   *
+   * @var bool
    */
   protected $integration_enabled;
 
@@ -59,6 +66,7 @@ class MonetizationKernelTestBase extends KernelTestBase {
 
     $this->integration_enabled = !empty(getenv(EnvironmentVariable::$APIGEE_INTEGRATION_ENABLE));
 
-    $this->init();
+    $this->baseSetUp();
   }
+
 }

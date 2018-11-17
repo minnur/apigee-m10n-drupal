@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Copyright 2018 Google Inc.
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -23,6 +23,8 @@ use Apigee\Edge\Api\Management\Controller\OrganizationController;
 use Apigee\Edge\Api\Management\Controller\OrganizationControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\ApiPackageController;
 use Apigee\Edge\Api\Monetization\Controller\ApiPackageControllerInterface;
+use Apigee\Edge\Api\Monetization\Controller\ApiProductController;
+use Apigee\Edge\Api\Monetization\Controller\ApiProductControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\CompanyPrepaidBalanceController;
 use Apigee\Edge\Api\Monetization\Controller\CompanyPrepaidBalanceControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperAcceptedRatePlanController;
@@ -70,8 +72,6 @@ class ApigeeSdkControllerFactory implements ApigeeSdkControllerFactoryInterface 
    */
   public function __construct(SDKConnectorInterface $sdk_connector) {
     $this->sdk_connector = $sdk_connector;
-    $this->org = $sdk_connector->getOrganization();
-    $this->client = $sdk_connector->getClient();
   }
 
   /**
@@ -86,10 +86,10 @@ class ApigeeSdkControllerFactory implements ApigeeSdkControllerFactoryInterface 
    */
   public function developerBalanceController(UserInterface $developer): DeveloperPrepaidBalanceControllerInterface {
     return new DeveloperPrepaidBalanceController(
-      $developer->getEmail(),
-      $this->org,
-      $this->client
-    );
+        $developer->getEmail(),
+        $this->getOrganization(),
+        $this->getClient()
+      );
   }
 
   /**
@@ -97,9 +97,19 @@ class ApigeeSdkControllerFactory implements ApigeeSdkControllerFactoryInterface 
    */
   public function companyBalanceController(CompanyInterface $company): CompanyPrepaidBalanceControllerInterface {
     return new CompanyPrepaidBalanceController(
-      $company->getLegalName(),
-      $this->org,
-      $this->client
+        $company->getLegalName(),
+        $this->getOrganization(),
+        $this->getClient()
+      );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function apiProductController(): ApiProductControllerInterface {
+    return new ApiProductController(
+      $this->getOrganization(),
+      $this->getClient()
     );
   }
 
@@ -108,9 +118,9 @@ class ApigeeSdkControllerFactory implements ApigeeSdkControllerFactoryInterface 
    */
   public function apiPackageController(): ApiPackageControllerInterface {
     return new ApiPackageController(
-      $this->org,
-      $this->client
-    );
+        $this->getOrganization(),
+        $this->getClient()
+      );
   }
 
   /**
@@ -119,8 +129,8 @@ class ApigeeSdkControllerFactory implements ApigeeSdkControllerFactoryInterface 
   public function packageRatePlanController($package_id): RatePlanControllerInterface {
     return new RatePlanController(
       $package_id,
-      $this->org,
-      $this->client
+      $this->getOrganization(),
+      $this->getClient()
     );
   }
 
@@ -128,11 +138,36 @@ class ApigeeSdkControllerFactory implements ApigeeSdkControllerFactoryInterface 
    * {@inheritdoc}
    */
   public function developerAcceptedRatePlanController(string $developer_email): DeveloperAcceptedRatePlanController {
-    return new DeveloperAcceptedRatePlanController(
-      'chrisnovak@google.com',//$developer_email,
-      $this->org,
-      $this->client
-    );
+    return
+      new DeveloperAcceptedRatePlanController(
+        $developer_email,
+        $this->getOrganization(),
+        $this->getClient()
+      );
+  }
+
+  /**
+   * Gets the org from the SDK connector.
+   *
+   * @return string
+   *   The organization id.
+   */
+  protected function getOrganization() {
+    $this->org = $this->org ?? $this->sdk_connector->getOrganization();
+
+    return $this->org;
+  }
+
+  /**
+   * Get the SDK client from the SDK connector.
+   *
+   * @return \Apigee\Edge\ClientInterface
+   *   The sdk client.
+   */
+  protected function getClient() {
+    $this->client = $this->client ?? $this->sdk_connector->getClient();
+
+    return $this->client;
   }
 
 }

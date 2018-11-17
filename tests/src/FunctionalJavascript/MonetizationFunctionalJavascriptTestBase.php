@@ -1,5 +1,6 @@
 <?php
-/**
+
+/*
  * Copyright 2018 Google Inc.
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -22,32 +23,41 @@ use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\Tests\apigee_m10n\Traits\ApigeeMonetizationTestTrait;
 use Drupal\apigee_m10n\EnvironmentVariable;
 
+/**
+ * Setup for functional javascript tests.
+ *
+ * @group apigee_m10n
+ * @group apigee_m10n_functional
+ */
 class MonetizationFunctionalJavascriptTestBase extends WebDriverTestBase {
 
-  use ApigeeMonetizationTestTrait;
+  use ApigeeMonetizationTestTrait {
+    setUp as baseSetUp;
+  }
 
   protected static $modules = [
     'apigee_edge',
     'apigee_m10n',
     'apigee_mock_client',
-    'system'
+    'system',
   ];
 
   /**
-   * @var \Drupal\apigee_mock_client\MockHandlerStack
-   *
    * The mock handler stack is responsible for serving queued api responses.
+   *
+   * @var \Drupal\apigee_mock_client\MockHandlerStack
    */
   protected $stack;
 
   /**
    * Whether actual integration tests are enabled.
-   * @var boolean
+   *
+   * @var bool
    */
   protected $integration_enabled;
 
   /**
-   * @throws \Drupal\Core\Entity\EntityStorageException
+   * {@inheritdoc}
    */
   protected function setUp() {
     parent::setUp();

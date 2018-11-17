@@ -1,5 +1,6 @@
 <?php
-/**
+
+/*
  * Copyright 2018 Google Inc.
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -18,7 +19,7 @@
 
 namespace Drupal\Tests\apigee_m10n_add_credit\Kernel;
 
-use Drupal\apigee_edge\Job;
+use Drupal\apigee_edge\Job\Job;
 use Drupal\apigee_edge\Job\JobCreatorTrait;
 use Drupal\apigee_m10n_add_credit\Form\ApigeeAddCreditConfigForm;
 use Drupal\apigee_m10n_add_credit\Job\BalanceAdjustmentJob;
@@ -40,16 +41,22 @@ class BalanceAdjustmentJobKernelTest extends MonetizationKernelTestBase {
   use JobCreatorTrait;
 
   /**
+   * The developer.
+   *
    * @var \Drupal\user\UserInterface
    */
   protected $developer;
 
   /**
-   * @var \Drupal\user\UserInterface
+   * A test site email address.
+   *
+   * @var string
    */
   protected $site_mail;
 
   /**
+   * The prepaid balance controller.
+   *
    * @var \Apigee\Edge\Api\Monetization\Controller\DeveloperPrepaidBalanceController
    */
   protected $balance_controller;
@@ -92,7 +99,7 @@ class BalanceAdjustmentJobKernelTest extends MonetizationKernelTestBase {
     $this->installEntitySchema('user');
     \Drupal::service('commerce_price.currency_importer')->importByCountry('US');
 
-    $this->developer = $this->createAccount([]);
+    $this->developer = $this->createAccount();
 
     $this->assertNoClientError();
 
@@ -103,20 +110,6 @@ class BalanceAdjustmentJobKernelTest extends MonetizationKernelTestBase {
       ->set('mail', $this->site_mail)
       ->set('name', 'example site')
       ->save();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function tearDown() {
-    // Prepare for deleting the developer.
-    $this->queueDeveloperResponse($this->developer);
-    $this->queueDeveloperResponse($this->developer);
-
-    // We have to remove the developer we created so it is removed from Apigee.
-    $this->developer->delete();
-
-    parent::tearDown();
   }
 
   /**
@@ -134,31 +127,35 @@ class BalanceAdjustmentJobKernelTest extends MonetizationKernelTestBase {
     ]));
 
     // Save the job.
-    $this->queueDeveloperResponse($this->developer);
     $this->scheduleJob($job);
     static::assertSame(Job::IDLE, $job->getStatus());
 
     $this->stack
-      // Queue an empty balance response because this is what you get with a new user.
-      ->queueFromResponseFile('get_prepaid_balances_empty')
+      // Queue an empty balance response because this is what you get with a new
+      // user.
+      ->queueMockResponse('no_content')
       // Queue a developer balance response for the top up (POST).
-      ->queueFromResponseFile(['post_developer_balances' => ['amount' => '19.99']])
+      ->queueMockResponse(['post_developer_balances' => ['amount' => '19.99']])
       // Queue an updated balance response.
-      ->queueFromResponseFile(['get_prepaid_balances' => [
-        'amount_usd' => '19.99',
-        'topups_usd' => '19.99',
-        'current_usage_usd' => '0',
-      ]]);
+      ->queueMockResponse([
+        'get_prepaid_balances' => [
+          'amount_usd' => '19.99',
+          'topups_usd' => '19.99',
+          'current_usage_usd' => '0',
+        ],
+      ]);
 
     // Execute the job which will update the developer balance.
     $this->getExecutor()->call($job);
     static::assertSame(Job::FINISHED, $job->getStatus());
 
     // The new balance will be re-read so queue the response.
-    $this->stack->queueFromResponseFile(['get_developer_balances' => [
-      'amount_usd' => '19.99',
-      'developer' => $this->developer,
-    ]]);
+    $this->stack->queueMockResponse([
+      'get_developer_balances' => [
+        'amount_usd' => '19.99',
+        'developer' => $this->developer,
+      ],
+    ]);
     $new_balance = $this->balance_controller->getByCurrency('USD');
     // The new balance should be 19.99.
     static::assertSame(19.99, $new_balance->getAmount());
@@ -172,10 +169,12 @@ class BalanceAdjustmentJobKernelTest extends MonetizationKernelTestBase {
   }
 
   /**
+   * Test the request when there is an existing balance.
+   *
    * Run the test again with the same users to test adding to an existing
    * balance. This would normally run as a separate test but that would create
    * another user that cannot be removed because of holding a developer
-   * balance. Err: `Cannot delete Developer [xxxxx] used in Developer_Balance`
+   * balance. Err: `Cannot delete Developer [xxxxx] used in Developer_Balance`.
    *
    * @throws \Exception
    */
@@ -187,35 +186,40 @@ class BalanceAdjustmentJobKernelTest extends MonetizationKernelTestBase {
     ]));
 
     // Save the job.
-    $this->queueDeveloperResponse($this->developer);
     $this->scheduleJob($job);
     static::assertSame(Job::IDLE, $job->getStatus());
 
     $this->stack
       // We should now have an existing balance of 19.99.
-      ->queueFromResponseFile(['get_prepaid_balances' => [
-        'amount_usd' => '19.99',
-        'topups_usd' => '19.99',
-        'current_usage_usd' => '0',
-      ]])
+      ->queueMockResponse([
+        'get_prepaid_balances' => [
+          'amount_usd' => '19.99',
+          'topups_usd' => '19.99',
+          'current_usage_usd' => '0',
+        ],
+      ])
       // Queue a developer balance response for the top up (POST).
-      ->queueFromResponseFile(['post_developer_balances' => ['amount' => '39.98']])
+      ->queueMockResponse(['post_developer_balances' => ['amount' => '39.98']])
       // Queue an updated balance response.
-      ->queueFromResponseFile(['get_prepaid_balances' => [
-        'amount_usd' => '39.98',
-        'topups_usd' => '39.98',
-        'current_usage_usd' => '0',
-      ]]);
+      ->queueMockResponse([
+        'get_prepaid_balances' => [
+          'amount_usd' => '39.98',
+          'topups_usd' => '39.98',
+          'current_usage_usd' => '0',
+        ],
+      ]);
 
     // Execute the job which will update the developer balance.
     $this->getExecutor()->call($job);
     static::assertSame(Job::FINISHED, $job->getStatus());
 
     // The new balance will be re-read so queue the response.
-    $this->stack->queueFromResponseFile(['get_developer_balances' => [
-      'amount_usd' => '39.98',
-      'developer' => $this->developer,
-    ]]);
+    $this->stack->queueMockResponse([
+      'get_developer_balances' => [
+        'amount_usd' => '39.98',
+        'developer' => $this->developer,
+      ],
+    ]);
     $new_balance = $this->balance_controller->getByCurrency('USD');
     // The new balance should be 19.99.
     static::assertSame(39.98, $new_balance->getAmount());
@@ -225,11 +229,12 @@ class BalanceAdjustmentJobKernelTest extends MonetizationKernelTestBase {
 
   /**
    * Run another test to check for success notifications.
+   *
    * @throws \Exception
    */
   public function testSuccessfulNotification() {
-    $this->config(ApigeeAddCreditConfigForm::$CONFIG_NAME)
-      ->set('notify_on', ApigeeAddCreditConfigForm::$NOTIFY_ALWAYS)
+    $this->config(ApigeeAddCreditConfigForm::CONFIG_NAME)
+      ->set('notify_on', ApigeeAddCreditConfigForm::NOTIFY_ALWAYS)
       ->save();
 
     $this->testExecuteRequestWithExistingBalance();
@@ -243,7 +248,7 @@ class BalanceAdjustmentJobKernelTest extends MonetizationKernelTestBase {
     static::assertSame('balance_adjustment_report', $emails[0]['key']);
     static::assertSame("Add Credit successfully applied to account ({$developer_mail}) from example site", $emails[0]['subject']);
     static::assertContains("Adjustment applied to developer:  `{$developer_mail}`.", $emails[0]['body']);
-    static::assertContains('Existing credit added ('.date('F').'):  `$19.99`', $emails[0]['body']);
+    static::assertContains('Existing credit added (' . date('F') . '):  `$19.99`', $emails[0]['body']);
     static::assertContains('Amount Applied:                   `$19.99`.', $emails[0]['body']);
     static::assertContains('New Balance:                      `$39.98`.', $emails[0]['body']);
     static::assertContains('Expected New Balance:             `$39.98`.', $emails[0]['body']);
@@ -267,17 +272,18 @@ class BalanceAdjustmentJobKernelTest extends MonetizationKernelTestBase {
     ]));
 
     // Save the job.
-    $this->queueDeveloperResponse($this->developer);
     $this->scheduleJob($job);
     static::assertSame(Job::IDLE, $job->getStatus());
 
     $this->stack
       // We should now have an existing balance of 19.99.
-      ->queueFromResponseFile(['get_prepaid_balances' => [
-        'amount_usd' => '19.99',
-        'topups_usd' => '19.99',
-        'current_usage_usd' => '0',
-      ]])
+      ->queueMockResponse([
+        'get_prepaid_balances' => [
+          'amount_usd' => '19.99',
+          'topups_usd' => '19.99',
+          'current_usage_usd' => '0',
+        ],
+      ])
       // Queue a developer balance response for the top up (POST).
       ->append(new Response(415, [], ''));
 
@@ -285,7 +291,7 @@ class BalanceAdjustmentJobKernelTest extends MonetizationKernelTestBase {
     $this->getExecutor()->call($job);
     static::assertSame(Job::FAILED, $job->getStatus());
 
-    //
+    // Get the last exception.
     $exceptions = $this->sdk_connector->getClient()->getJournal()->getLastException();
     static::assertNotEmpty(
       $exceptions,
@@ -302,9 +308,10 @@ class BalanceAdjustmentJobKernelTest extends MonetizationKernelTestBase {
     static::assertContains('There was an error applying a credit to an account.', $emails[0]['body']);
     $nl = PHP_EOL;
     static::assertContains("Calculation discrepancy applying adjustment to developer{$nl}`{$this->developer->getEmail()}`.", $emails[0]['body']);
-    static::assertContains('Existing credit added ('.date('F').'):  `$19.99`', $emails[0]['body']);
+    static::assertContains('Existing credit added (' . date('F') . '):  `$19.99`', $emails[0]['body']);
     static::assertContains('Amount Applied:                   `$19.99`.', $emails[0]['body']);
     static::assertContains('New Balance:                      `Error retrieving the new balance.`.', $emails[0]['body']);
     static::assertContains('Expected New Balance:             `$39.98`.', $emails[0]['body']);
   }
+
 }

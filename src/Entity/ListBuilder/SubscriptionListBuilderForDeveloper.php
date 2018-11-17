@@ -1,5 +1,22 @@
 <?php
 
+/*
+ * Copyright 2018 Google Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the
+ * Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 namespace Drupal\apigee_m10n\Entity\ListBuilder;
 
 use Drupal\apigee_m10n\Entity\SubscriptionInterface;
@@ -13,6 +30,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Url;
 use Drupal\user\UserInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -38,6 +56,13 @@ class SubscriptionListBuilderForDeveloper extends EntityListBuilder implements C
    * @var \Drupal\Core\Messenger\MessengerInterface
    */
   protected $messenger;
+
+  /**
+   * The user for the listing page.
+   *
+   * @var \Drupal\user\UserInterface
+   */
+  protected $user;
 
   /**
    * Constructs a new EntityListBuilder object.
@@ -112,7 +137,7 @@ class SubscriptionListBuilderForDeveloper extends EntityListBuilder implements C
       return $result ? "{$result}, {$product->getDisplayName()}" : $product->getDisplayName();
     }, "");
 
-    $row['status'] = $this->getSubscriptionStatus($subscription);
+    $row['status'] = $subscription->getSubscriptionStatus();
     $row['package'] = $rate_plan->getPackage()->getDisplayName();
     $row['products'] = $products;
     $row['plan'] = Link::fromTextAndUrl($rate_plan->getDisplayName(), $rate_plan->toUrl());
@@ -129,18 +154,12 @@ class SubscriptionListBuilderForDeveloper extends EntityListBuilder implements C
   /**
    * {@inheritdoc}
    */
-  public function getOperations(EntityInterface $entity) {
-    return parent::getOperations($entity);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function load() {
     throw new EntityStorageException('Unable to load subscriptions directly. Use `SubscriptionStorage::loadPackageRatePlans`.');
   }
 
   public function render(UserInterface $user = NULL) {
+    $this->user = $user;
     $developer_id = $user->apigee_edge_developer_id->value;
 
     $header = $this->buildHeader();
@@ -211,34 +230,22 @@ class SubscriptionListBuilderForDeveloper extends EntityListBuilder implements C
   }
 
   /**
-   * @todo determine if this should be in the AcceptedRatePlan SDK entity.
-   *
-   * @param $subscription
-   *
-   * @return string
+   * {@inheritdoc}
    */
-  private function getSubscriptionStatus($subscription) {
-    $org_timezone = $subscription->getRatePlan()->getOrganization()->getTimezone();
-    $today = new \DateTime('today', $org_timezone);
+  protected function getDefaultOperations(EntityInterface $entity) {
+    $operations = parent::getDefaultOperations($entity);
 
-    // If rate plan ended before today, the status is ended.
-    $plan_end_date = $subscription->getRatePlan()->getEndDate();
-    if (!empty($plan_end_date) && $plan_end_date < $today) {
-      return SubscriptionInterface::STATUS_ENDED;
-    }
-    // If the developer ended the plan before today, the plan has ended.
-    $developer_plan_end_date = $subscription->getEndDate();
-    if (!empty($developer_plan_end_date) && $developer_plan_end_date < $today) {
-      return SubscriptionInterface::STATUS_ENDED;
+    if ($entity->access('unsubscribe') && $entity->hasLinkTemplate('unsubscribe-form')) {
+      if ($entity->isSubscriptionActive()) {
+        $operations['unsubscribe'] = [
+          'title' => $this->t('Unsubscribe'),
+          'weight' => 10,
+          'url' => $this->ensureDestination(Url::fromRoute('entity.subscription.unsubscribe_form', ['user' => $this->user->id(), 'subscription' => $entity->id()])),
+        ];
+      }
     }
 
-    // If the start date is later than today, it is a future plan.
-    $developer_plan_start_date = $subscription->getStartDate();
-    if (!empty($developer_plan_start_date) && $developer_plan_start_date > $today) {
-      return SubscriptionInterface::STATUS_FUTURE;
-    }
-
-    return SubscriptionInterface::STATUS_ACTIVE;
+    return $operations;
   }
 
 }

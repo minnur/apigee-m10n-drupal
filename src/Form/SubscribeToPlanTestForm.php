@@ -1,5 +1,22 @@
 <?php
 
+/*
+ * Copyright 2018 Google Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the
+ * Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 namespace Drupal\apigee_m10n\Form;
 
 use Drupal\apigee_m10n\Controller\PackagesController;
@@ -26,7 +43,7 @@ class SubscribeToPlanTestForm extends FormBase {
 
     if (!$packages_and_plans) {
       $controller = PackagesController::create(\Drupal::getContainer());
-      $packages_and_plans = $controller->catalogPage(User::load(213));
+      $packages_and_plans = $controller->catalogPage(User::load(3));
       \Drupal::cache()->set('packages_and_plans', $packages_and_plans);
     }
     else {

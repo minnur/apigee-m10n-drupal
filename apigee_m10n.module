@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Copyright 2018 Google Inc.
@@ -36,36 +37,20 @@ function apigee_m10n_api_product_access(EntityInterface $entity, $operation, Acc
 }
 
 /**
- * Implements hook_theme().
+ * Implements hook_theme_suggestions_HOOK().
  */
-function apigee_m10n_theme($existing, $type, $theme, $path) {
-  return [
-    'prepaid_balances' => [
-      'variables' => ['balances' => NULL],
-      'template' => 'prepaid-balances',
-    ],
-    'package_list' => [
-      'variables' => ['package_list' => NULL],
-      'template' => 'package-list',
-    ],
-    'package' => [
-      'variables' => [
-        'package' => NULL,
-        'product_list' => NULL,
-      ],
-      'template' => 'package',
-    ],
-    'product_list' => [
-      'variables' => ['product_list' => NULL],
-    ],
-    'api_product' => [
-      'variables' => ['api_product' => NULL],
-    ],
-    'rate_plan_detail' => [
-      'variables' => ['detail' => NULL],
-      'template' => 'rate-plan-detail',
-    ],
-  ];
+function apigee_m10n_theme_suggestions_rate_plan(array $variables) {
+  $suggestions = [];
+  $rate_plan = $variables['elements']['#rate_plan'];
+  $sanitized_view_mode = strtr($variables['elements']['#view_mode'], '.', '_');
+
+  $suggestions[] = 'apigee_rate_plan__' . $sanitized_view_mode;
+  $suggestions[] = 'apigee_rate_plan__' . $rate_plan->bundle();
+  $suggestions[] = 'apigee_rate_plan__' . $rate_plan->bundle() . '__' . $sanitized_view_mode;
+  $suggestions[] = 'apigee_rate_plan__' . $rate_plan->id();
+  $suggestions[] = 'apigee_rate_plan__' . $rate_plan->id() . '__' . $sanitized_view_mode;
+
+  return $suggestions;
 }
 
 /**
@@ -73,7 +58,7 @@ function apigee_m10n_theme($existing, $type, $theme, $path) {
  *
  * Default template: rate-plan.html.twig.
  *
- * @param $variables
+ * @param array $variables
  *   An associative array containing:
  *   - elements: An array of elements to display in view mode.
  *   - rate_plan: The Apigee  package rate plan entity.
@@ -95,14 +80,52 @@ function template_preprocess_rate_plan(&$variables) {
 }
 
 /**
+ * Implements hook_theme().
+ */
+function apigee_m10n_theme($existing, $type, $theme, $path) {
+  return [
+    'rate_plan' => [
+      'render element' => 'elements',
+    ],
+    'prepaid_balances' => [
+      'variables' => ['balances' => NULL],
+      'template' => 'prepaid-balances',
+    ],
+    'package_list' => [
+      'variables' => ['package_list' => NULL, 'plan_list' => NULL],
+      'template' => 'package-list',
+    ],
+    'package' => [
+      'variables' => [
+        'package' => NULL,
+        'product_list' => NULL,
+        'plan_list' => NULL,
+      ],
+      'template' => 'package',
+    ],
+    'product_list' => [
+      'variables' => ['product_list' => NULL],
+    ],
+    'api_product' => [
+      'variables' => ['api_product' => NULL],
+    ],
+    'rate_plan_detail' => [
+      'variables' => ['detail' => NULL],
+      'template' => 'rate-plan-detail',
+    ],
+  ];
+}
+
+/**
  * Implements hook_preprocess_HOOK().
  */
 function apigee_m10n_preprocess_package_list(&$variables) {
   // Convert the package list into individual renderable items.
-  array_walk($variables['package_list'], function (&$package){
+  array_walk($variables['package_list'], function (&$package) use ($variables) {
     $package = [
       '#theme' => 'package',
       '#package' => $package,
+      '#plan_list' => $variables['plan_list'][$package->id()],
     ];
   });
 }
@@ -118,30 +141,16 @@ function apigee_m10n_preprocess_package(&$variables) {
     '#product_list' => $variables['package']->getApiProducts(),
   ];
 }
+
 /**
  * Implements hook_preprocess_HOOK().
  */
 function apigee_m10n_preprocess_product_list(&$variables) {
   // Convert the package list into individual renderable items.
-  array_walk($variables['product_list'], function (&$api_product){
+  array_walk($variables['product_list'], function (&$api_product) {
     $api_product = [
       '#theme' => 'api_product',
       '#api_product' => $api_product,
     ];
   });
-}
-
-/**
- * Implements hook_theme_suggestions_HOOK().
- */
-function apigee_m10n_theme_suggestions_rate_plan(array $variables) {
-  $suggestions = [];
-  $rate_plan = $variables['elements']['#rate_plan'];
-  $sanitized_view_mode = strtr($variables['elements']['#view_mode'], '.', '_');
-  $plan_id = $rate_plan->id();
-  $bundle = $rate_plan->bundle();
-  foreach ([$sanitized_view_mode, $bundle, $bundle . '__' . $sanitized_view_mode, $plan_id, $plan_id . '__' . $sanitized_view_mode] as $suffix) {
-    $suggestions[] = 'apigee_rate_plan__' . $suffix;
-  }
-  return $suggestions;
 }

@@ -6,6 +6,16 @@ apigee_m10n.settings:
   requirements:
     _permission: 'administer apigee monetization'
 
+apigee_m10n.settings.rate_plan:
+  path: 'admin/config/apigee-edge/monetization/rate-plan-settings'
+  defaults:
+    _form: '\Drupal\apigee_m10n\Form\RatePlanConfigForm'
+    _title: 'Rate plan settings'
+  requirements:
+    _permission: 'administer apigee m10n'
+  options:
+    _admin_route: TRUE
+
 apigee_monetization.my_billing:
   path: /user/monetization/billing
   defaults:
@@ -35,21 +45,6 @@ apigee_monetization.packages:
   requirements:
     _permission: 'access monetization packages'
 
-apigee_monetization.my_purchased:
-  path: /user/monetization/packages/purchased
-  defaults:
-    _controller: \Drupal\apigee_m10n\Controller\PackagesController::myPurchased
-  requirements:
-    _permission: 'access purchased monetization packages'
-
-apigee_monetization.purchased:
-  path: /user/{user}/monetization/packages/purchased
-  defaults:
-    _controller: \Drupal\apigee_m10n\Controller\PackagesController::purchasedPage
-    _title: "Purchased Packages"
-  requirements:
-    _permission: 'access purchased monetization packages'
-
 apigee_monetization.my_subscriptions:
   path: /user/monetization/subscriptions
   defaults:
@@ -72,3 +67,16 @@ apigee_monetization.subscribe_to_plan:
     _form: '\Drupal\apigee_m10n\Form\SubscribeToPlanTestForm'
   requirements:
     _permission: 'administer apigee monetization'
+
+# @todo: Consider using a route provider for this route.
+entity.subscription.unsubscribe_form:
+  path: '/user/{user}/monetization/subscription/{subscription}/unsubscribe'
+  defaults:
+    _entity_form: 'subscription.unsubscribe'
+    _title_callback: '\Drupal\Core\Entity\Controller\EntityController::title'
+  requirements:
+    _entity_access: 'subscription.unsubscribe'
+  options:
+    parameters:
+      subscription:
+        converter: paramconverter.entity.subscription

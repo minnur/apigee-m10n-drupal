@@ -1,5 +1,6 @@
 <?php
-/**
+
+/*
  * Copyright 2018 Google Inc.
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -35,21 +36,29 @@ class AddCreditProductAdminTest extends MonetizationFunctionalTestBase {
   use StoreCreationTrait;
 
   /**
+   * The admin user.
+   *
    * @var \Drupal\user\UserInterface
    */
   protected $admin;
 
   /**
+   * A test product.
+   *
    * @var \Drupal\commerce_product\Entity\ProductInterface
    */
   protected $product;
 
   /**
+   * The commerce store.
+   *
    * @var \Drupal\commerce_store\Entity\StoreInterface
    */
   protected $store;
 
   /**
+   * The SDK balance controller.
+   *
    * @var \Apigee\Edge\Api\Monetization\Controller\DeveloperPrepaidBalanceController
    */
   protected $balance_controller;
@@ -118,7 +127,7 @@ class AddCreditProductAdminTest extends MonetizationFunctionalTestBase {
 
     // Go to the "manage form display" page for this product type.
     $this->drupalGet('admin/commerce/config/product-types/default/edit/form-display');
-    // Get the field table text
+    // Get the field table text.
     $table_test = $this->getSession()->getPage()->find('css', 'table#field-display-overview')->getText();
     // Make sure the enable field comes before the "Disabled" row (region).
     static::assertLessThan(
@@ -157,7 +166,7 @@ class AddCreditProductAdminTest extends MonetizationFunctionalTestBase {
    * @covers \Drupal\apigee_m10n_add_credit\Form\ApigeeAddCreditConfigForm::validateForm
    * @covers \Drupal\apigee_m10n_add_credit\Form\ApigeeAddCreditConfigForm::submitForm
    */
-  public function testNotificationAdminUI() {
+  public function testNotificationAdminUi() {
     $this->drupalGet('admin/config/apigee-edge/monetization/add-credit-settings');
     // Check the title.
     $this->assertCssElementContains('h1.page-title', 'Apigee Add Credit Configuration');
@@ -172,12 +181,13 @@ class AddCreditProductAdminTest extends MonetizationFunctionalTestBase {
     $this->assertCssElementContains('div.apigee-add-credit-notification-note', 'See Drupal commerce documentation for more information.');
 
     // Change to always notify.
-    $this->submitForm(['notify_on' => ApigeeAddCreditConfigForm::$NOTIFY_ALWAYS], 'Save configuration');
+    $this->submitForm(['notify_on' => ApigeeAddCreditConfigForm::NOTIFY_ALWAYS], 'Save configuration');
     $this->assertCssElementContains('h1.page-title', 'Apigee Add Credit Configuration');
     $this->assertCssElementContains('div.messages--status', ' The configuration options have been saved.');
     // Load the saved config and test the changes.
-    $settings = $this->config(ApigeeAddCreditConfigForm::$CONFIG_NAME);
-    static::assertSame(ApigeeAddCreditConfigForm::$NOTIFY_ALWAYS, $settings->get('notify_on'));
+    $settings = $this->config(ApigeeAddCreditConfigForm::CONFIG_NAME);
+    static::assertSame(ApigeeAddCreditConfigForm::NOTIFY_ALWAYS, $settings->get('notify_on'));
     static::assertSame($site_mail, $settings->get('notification_recipient'));
   }
+
 }

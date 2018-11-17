@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Copyright 2018 Google Inc.
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -17,24 +17,17 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-namespace Drupal\Tests\apigee_m10n\Unit;
+namespace Drupal\Tests\apigee_m10n\Kernel\Plugin\Field\FieldFormatter;
 
-use Drupal\Tests\UnitTestCase;
+use Drupal\Tests\apigee_m10n\Kernel\MonetizationKernelTestBase;
 
 /**
- * Test the test suite.
- *
- * @todo: Remove this once the first test has been added.
+ * Test the `apigee_api_package` field type.
  *
  * @group apigee_m10n
+ * @group apigee_m10n_kernel
  */
-class ExampleTest extends UnitTestCase {
+class ApiPackageFieldItemKernelTest extends MonetizationKernelTestBase {
+  // @todo: Implement tests for Apigee field types.
 
-  /**
-   * Tests that the test suite is functioning.
-   */
-  public function testAssertion() {
-
-    self::assertTrue(TRUE);
-  }
 }

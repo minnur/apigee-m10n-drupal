@@ -8,6 +8,7 @@ services:
   apigee_m10n.sdk_controller_factory:
     class: Drupal\apigee_m10n\ApigeeSdkControllerFactory
     arguments: ['@apigee_edge.sdk_connector']
+# @todo: Consider dropping the `apigee_m10n.validate_monetization_enabled` event subscriber.
   apigee_m10n.validate_monetization_enabled:
     class: Drupal\apigee_m10n\EventSubscriber\ValidateMonetizationEnabledSubscriber
     arguments: ['@apigee_m10n.monetization', '@messenger']
@@ -17,3 +18,8 @@ services:
     class: Drupal\apigee_m10n\TwigExtension\FormatCurrencyTwigExtension
     tags:
     - { name: twig.extension }
+  paramconverter.entity.subscription:
+    class: Drupal\apigee_m10n\Entity\ParamConverter\SubscriptionConverter
+    tags:
+      - { name: paramconverter }
+    arguments: ['@entity.manager', '@language_manager']
