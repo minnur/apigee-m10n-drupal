@@ -176,11 +176,6 @@ class Subscription extends AcceptedRatePlan implements SubscriptionInterface {
     return SubscriptionInterface::STATUS_ACTIVE;
   }
 
-  /**
-   * Check if subscription is active.
-   *
-   * @return bool
-   */
   public function isSubscriptionActive() {
     return $this->getSubscriptionStatus() === SubscriptionInterface::STATUS_ACTIVE;
   }
