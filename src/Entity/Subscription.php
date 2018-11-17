@@ -146,11 +146,7 @@ class Subscription extends AcceptedRatePlan implements SubscriptionInterface {
   }
 
   /**
-   * Get subscription status.
-   *
-   * @param $subscription
-   *
-   * @return string
+   * {@inheritdoc}
    */
   public function getSubscriptionStatus() {
     $org_timezone = $this->getRatePlan()->getOrganization()->getTimezone();
@@ -176,14 +172,23 @@ class Subscription extends AcceptedRatePlan implements SubscriptionInterface {
     return SubscriptionInterface::STATUS_ACTIVE;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function isSubscriptionActive() {
     return $this->getSubscriptionStatus() === SubscriptionInterface::STATUS_ACTIVE;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function isDefaultRevision($new_value = NULL) {
     return TRUE;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public static function loadRatePlansByDeveloperEmail(string $developer_email): array {
     // TODO: Implement loadRatePlansByDeveloperEmail() method.
   }
