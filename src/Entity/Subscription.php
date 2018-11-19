@@ -148,7 +148,7 @@ class Subscription extends AcceptedRatePlan implements SubscriptionInterface {
   /**
    * {@inheritdoc}
    */
-  public function getSubscriptionStatus() {
+  public function getSubscriptionStatus(): string {
     $org_timezone = $this->getRatePlan()->getOrganization()->getTimezone();
     $today = new \DateTime('today', $org_timezone);
 
@@ -175,7 +175,7 @@ class Subscription extends AcceptedRatePlan implements SubscriptionInterface {
   /**
    * {@inheritdoc}
    */
-  public function isSubscriptionActive() {
+  public function isSubscriptionActive(): bool {
     return $this->getSubscriptionStatus() === SubscriptionInterface::STATUS_ACTIVE;
   }
 
