@@ -21,6 +21,7 @@ namespace Drupal\apigee_m10n;
 
 use Apigee\Edge\Api\Management\Controller\OrganizationController;
 use Apigee\Edge\Api\Management\Controller\OrganizationControllerInterface;
+use Apigee\Edge\Api\Management\Entity\Developer;
 use Apigee\Edge\Api\Monetization\Controller\ApiPackageController;
 use Apigee\Edge\Api\Monetization\Controller\ApiPackageControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\ApiProductController;
@@ -34,6 +35,7 @@ use Apigee\Edge\Api\Monetization\Controller\DeveloperPrepaidBalanceControllerInt
 use Apigee\Edge\Api\Monetization\Controller\RatePlanController;
 use Apigee\Edge\Api\Monetization\Controller\RatePlanControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\TermsAndConditionsController;
+use Apigee\Edge\Api\Monetization\Controller\DeveloperTermsAndConditionsController;
 use Apigee\Edge\Api\Monetization\Entity\CompanyInterface;
 use Drupal\apigee_edge\SDKConnectorInterface;
 use Drupal\user\UserInterface;
@@ -103,6 +105,17 @@ class ApigeeSdkControllerFactory implements ApigeeSdkControllerFactoryInterface 
       $this->controllers[__FUNCTION__] = new DeveloperController($this->getOrganization(), $this->getClient());
     }
     return $this->controllers[__FUNCTION__];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function developerTermsAndConditionsController(string $developer_id): DeveloperTermsAndConditionsController {
+    return new DeveloperTermsAndConditionsController(
+      $developer_id,
+      $this->getOrganization(),
+      $this->getClient()
+    );
   }
 
   /**

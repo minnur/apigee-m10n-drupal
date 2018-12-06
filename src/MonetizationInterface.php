@@ -104,4 +104,23 @@ interface MonetizationInterface {
    */
   public function formatCurrency(string $amount, string $currency_id): string;
 
+  /**
+   * Get all terms and conditions.
+   *
+   * @return array|null
+   *   Array of all terms and conditions.
+   */
+  public function getAllTermsAndConditions(): ?array;
+
+  /**
+   * Get terms and conditions accepted by developer.
+   *
+   * @param string $developer_id
+   *   Developer email.
+   *
+   * @return array|null
+   *   Array of terms and conditions.
+   */
+  public function getDeveloperAcceptedTermsAndConditions(string $developer_id): ?array;
+
 }
