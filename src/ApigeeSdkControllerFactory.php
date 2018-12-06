@@ -33,6 +33,7 @@ use Apigee\Edge\Api\Monetization\Controller\DeveloperPrepaidBalanceController;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperPrepaidBalanceControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\RatePlanController;
 use Apigee\Edge\Api\Monetization\Controller\RatePlanControllerInterface;
+use Apigee\Edge\Api\Monetization\Controller\TermsAndConditionsController;
 use Apigee\Edge\Api\Monetization\Entity\CompanyInterface;
 use Drupal\apigee_edge\SDKConnectorInterface;
 use Drupal\user\UserInterface;
@@ -171,6 +172,16 @@ class ApigeeSdkControllerFactory implements ApigeeSdkControllerFactoryInterface 
   public function developerAcceptedRatePlanController(string $developer_id): DeveloperAcceptedRatePlanController {
     return new DeveloperAcceptedRatePlanController(
       $developer_id,
+      $this->getOrganization(),
+      $this->getClient()
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function termsAndConditionsController(): TermsAndConditionsController {
+    return new TermsAndConditionsController(
       $this->getOrganization(),
       $this->getClient()
     );

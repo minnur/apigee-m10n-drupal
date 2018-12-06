@@ -27,6 +27,7 @@ use Apigee\Edge\Api\Monetization\Controller\DeveloperAcceptedRatePlanController;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperController;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperPrepaidBalanceControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\RatePlanControllerInterface;
+use Apigee\Edge\Api\Monetization\Controller\TermsAndConditionsController;
 use Apigee\Edge\Api\Monetization\Entity\CompanyInterface;
 use Drupal\user\UserInterface;
 
@@ -109,5 +110,13 @@ interface ApigeeSdkControllerFactoryInterface {
    *   A developer accepted rate plan controller.
    */
   public function developerAcceptedRatePlanController(string $developer_id): DeveloperAcceptedRatePlanController;
+
+  /**
+   * Creates terms and conditions controller.
+   *
+   * @return \Apigee\Edge\Api\Monetization\Controller\TermsAndConditionsControllerInterface
+   *   Terms and conditions.
+   */
+  public function termsAndConditionsController(): TermsAndConditionsController;
 
 }
