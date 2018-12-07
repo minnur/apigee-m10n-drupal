@@ -26,7 +26,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Cache\Cache;
-use Drupal\apigee_m10n\Monetization;
+use Drupal\apigee_m10n\MonetizationInterface;
 
 /**
  * Subscription entity form.
@@ -58,8 +58,10 @@ class SubscriptionForm extends MonetizationEntityForm {
    *   The time service.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   Messenger service.
+   * @param \Drupal\apigee_m10n\MonetizationInterface $monetization
+   *   Monetization factory.
    */
-  public function __construct(EntityRepositoryInterface $entity_repository, EntityTypeBundleInfoInterface $entity_type_bundle_info = NULL, TimeInterface $time = NULL, MessengerInterface $messenger = NULL, Monetization $monetization = NULL) {
+  public function __construct(EntityRepositoryInterface $entity_repository, EntityTypeBundleInfoInterface $entity_type_bundle_info = NULL, TimeInterface $time = NULL, MessengerInterface $messenger = NULL, MonetizationInterface $monetization = NULL) {
     parent::__construct($entity_repository, $entity_type_bundle_info, $time);
     $this->messenger = $messenger;
     $this->monetization = $monetization;
@@ -124,7 +126,12 @@ class SubscriptionForm extends MonetizationEntityForm {
    */
   public function save(array $form, FormStateInterface $form_state) {
     try {
-      $this->monetization->acceptLatestTermsAndConditions($this->getEntity()->getDeveloper()->getEmail());
+      // Accept terms and conditions.
+      if (!empty($form_state->getValue('tnc'))) {
+        // @TODO: maybe we need to handle this a little bit differntly
+        // first make sure developer accepted T&C and then save Subscription entity?
+        $this->monetization->acceptLatestTermsAndConditions($this->getEntity()->getDeveloper()->getEmail());
+      }
       $display_name = $this->entity->getRatePlan()->getDisplayName();
       if ($this->entity->save()) {
         $this->messenger->addStatus($this->t('You have purchased <em>%label</em> plan', [
