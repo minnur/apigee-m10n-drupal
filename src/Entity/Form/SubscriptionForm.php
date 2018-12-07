@@ -34,7 +34,7 @@ use Drupal\apigee_m10n\Monetization;
 class SubscriptionForm extends MonetizationEntityForm {
 
   /**
-   * Messanger service.
+   * Messenger service.
    *
    * @var \Drupal\Core\Messenger\MessengerInterface
    */
