@@ -26,6 +26,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Url;
+use Drupal\Core\Link;
 use Drupal\apigee_m10n\MonetizationInterface;
 
 /**
@@ -89,9 +91,13 @@ class SubscriptionForm extends MonetizationEntityForm {
     // We won't ask a user to accept terms and conditions again if
     // it has been already accepted.
     if (!$this->monetization->isLatestTermsAndConditionAccepted($this->getEntity()->getDeveloper()->getEmail())) {
+      $tnc = $this->monetization->getLatestTermsAndConditions();
       $form['tnc'] = [
         '#type'  => 'checkbox',
-        '#title' => $this->t('Acceptance text goes here'),
+        '#title' => $this->t('%description @link', [
+          '%description' => ($description = $tnc->getDescription()) ? $this->t($description) : $this->t('Accept terms and conditions'),
+          '@link'        => ($link = $tnc->getUrl()) ? Link::fromTextAndUrl($this->t('Terms and Conditions'), Url::fromUri($link))->toString() : '',
+        ]),
       ];
     }
 
