@@ -27,9 +27,12 @@ use Apigee\Edge\Api\Monetization\Controller\DeveloperAcceptedRatePlanController;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperController;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperPrepaidBalanceControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\RatePlanControllerInterface;
+use Apigee\Edge\Api\Monetization\Controller\SupportedCurrencyControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\TermsAndConditionsController;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperTermsAndConditionsController;
 use Apigee\Edge\Api\Monetization\Entity\CompanyInterface;
+use Drupal\apigee_m10n\SDK\Controller\BillingDocumentsControllerInterface;
+use Drupal\apigee_m10n\SDK\Controller\PrepaidBalanceReportsControllerInterface;
 use Drupal\user\UserInterface;
 
 /**
@@ -126,9 +129,36 @@ interface ApigeeSdkControllerFactoryInterface {
   /**
    * Creates terms and conditions controller.
    *
-   * @return \Apigee\Edge\Api\Monetization\Controller\TermsAndConditionsControllerInterface
+   * @return \Apigee\Edge\Api\Monetization\Controller\TermsAndConditionsController
    *   Terms and conditions.
    */
   public function termsAndConditionsController(): TermsAndConditionsController;
+
+  /**
+   * Creates a supported currency controller.
+   *
+   * @return \Apigee\Edge\Api\Monetization\Controller\SupportedCurrencyControllerInterface
+   *   The controller.
+   */
+  public function supportedCurrencyController(): SupportedCurrencyControllerInterface;
+
+  /**
+   * Creates a billing documents controller.
+   *
+   * @return \Drupal\apigee_m10n\SDK\Controller\BillingDocumentsControllerInterface
+   *   The controller.
+   */
+  public function billingDocumentsController(): BillingDocumentsControllerInterface;
+
+  /**
+   * Creates a prepaid balance reports controller.
+   *
+   * @param string $developerId
+   *   UUID or email address of a developer.
+   *
+   * @return \Drupal\apigee_m10n\SDK\Controller\PrepaidBalanceReportsControllerInterface
+   *   The controller.
+   */
+  public function prepaidBalanceReportsController(string $developerId): PrepaidBalanceReportsControllerInterface;
 
 }

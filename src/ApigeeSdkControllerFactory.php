@@ -21,7 +21,6 @@ namespace Drupal\apigee_m10n;
 
 use Apigee\Edge\Api\Management\Controller\OrganizationController;
 use Apigee\Edge\Api\Management\Controller\OrganizationControllerInterface;
-use Apigee\Edge\Api\Management\Entity\Developer;
 use Apigee\Edge\Api\Monetization\Controller\ApiPackageController;
 use Apigee\Edge\Api\Monetization\Controller\ApiPackageControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\ApiProductController;
@@ -34,10 +33,16 @@ use Apigee\Edge\Api\Monetization\Controller\DeveloperPrepaidBalanceController;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperPrepaidBalanceControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\RatePlanController;
 use Apigee\Edge\Api\Monetization\Controller\RatePlanControllerInterface;
+use Apigee\Edge\Api\Monetization\Controller\SupportedCurrencyController;
+use Apigee\Edge\Api\Monetization\Controller\SupportedCurrencyControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\TermsAndConditionsController;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperTermsAndConditionsController;
 use Apigee\Edge\Api\Monetization\Entity\CompanyInterface;
 use Drupal\apigee_edge\SDKConnectorInterface;
+use Drupal\apigee_m10n\SDK\Controller\BillingDocumentsController;
+use Drupal\apigee_m10n\SDK\Controller\BillingDocumentsControllerInterface;
+use Drupal\apigee_m10n\SDK\Controller\PrepaidBalanceReportsController;
+use Drupal\apigee_m10n\SDK\Controller\PrepaidBalanceReportsControllerInterface;
 use Drupal\user\UserInterface;
 
 /**
@@ -194,7 +199,50 @@ class ApigeeSdkControllerFactory implements ApigeeSdkControllerFactoryInterface 
    * {@inheritdoc}
    */
   public function termsAndConditionsController(): TermsAndConditionsController {
-    return new TermsAndConditionsController(
+    if (empty($this->controllers[__FUNCTION__])) {
+      // Create a new terms and conditions controller.
+      $this->controllers[__FUNCTION__] = new TermsAndConditionsController(
+        $this->getOrganization(),
+        $this->getClient()
+      );
+    }
+    return $this->controllers[__FUNCTION__];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function supportedCurrencyController(): SupportedCurrencyControllerInterface {
+    if (empty($this->controllers[__FUNCTION__])) {
+      // Create a new currency controller.
+      $this->controllers[__FUNCTION__] = new SupportedCurrencyController(
+        $this->getOrganization(),
+        $this->getClient()
+      );
+    }
+    return $this->controllers[__FUNCTION__];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function billingDocumentsController(): BillingDocumentsControllerInterface {
+    if (empty($this->controllers[__FUNCTION__])) {
+      // Create a new currency controller.
+      $this->controllers[__FUNCTION__] = new BillingDocumentsController(
+        $this->getOrganization(),
+        $this->getClient()
+      );
+    }
+    return $this->controllers[__FUNCTION__];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function prepaidBalanceReportsController(string $developerId): PrepaidBalanceReportsControllerInterface {
+    return new PrepaidBalanceReportsController(
+      $developerId,
       $this->getOrganization(),
       $this->getClient()
     );

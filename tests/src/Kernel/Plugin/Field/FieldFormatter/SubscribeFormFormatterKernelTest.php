@@ -112,7 +112,7 @@ class SubscribeFormFormatterKernelTest extends MonetizationKernelTestBase {
     $instance = $this->formatter_manager->createInstance('apigee_subscribe_form', [
       'field_definition' => $this->field_manager->getBaseFieldDefinitions('rate_plan')['subscribeRatePlan'],
       'settings' => [
-        'label' => 'Subscribe Rate Plan'
+        'label' => 'Subscribe Rate Plan',
       ],
       'label' => TRUE,
       'view_mode' => 'default',
