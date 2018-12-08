@@ -27,6 +27,8 @@ use Apigee\Edge\Api\Monetization\Controller\DeveloperAcceptedRatePlanController;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperController;
 use Apigee\Edge\Api\Monetization\Controller\DeveloperPrepaidBalanceControllerInterface;
 use Apigee\Edge\Api\Monetization\Controller\RatePlanControllerInterface;
+use Apigee\Edge\Api\Monetization\Controller\TermsAndConditionsController;
+use Apigee\Edge\Api\Monetization\Controller\DeveloperTermsAndConditionsController;
 use Apigee\Edge\Api\Monetization\Entity\CompanyInterface;
 use Drupal\user\UserInterface;
 
@@ -46,12 +48,23 @@ interface ApigeeSdkControllerFactoryInterface {
   public function organizationController(): OrganizationControllerInterface;
 
   /**
-   * Creates a monettization developer controller.
+   * Creates a monetization developer controller.
    *
    * @return \Apigee\Edge\Api\Monetization\Controller\DeveloperController
    *   The developer controller.
    */
   public function developerController(): DeveloperController;
+
+  /**
+   * Creates developer terms and conditions controller.
+   *
+   * @param string $developer_id
+   *   Developer ID.
+   *
+   * @return \Apigee\Edge\Api\Monetization\Controller\DeveloperTermsAndConditionsController
+   *   The developer controller.
+   */
+  public function developerTermsAndConditionsController(string $developer_id): DeveloperTermsAndConditionsController;
 
   /**
    * Creates a developer prepaid balance controller.
@@ -109,5 +122,13 @@ interface ApigeeSdkControllerFactoryInterface {
    *   A developer accepted rate plan controller.
    */
   public function developerAcceptedRatePlanController(string $developer_id): DeveloperAcceptedRatePlanController;
+
+  /**
+   * Creates terms and conditions controller.
+   *
+   * @return \Apigee\Edge\Api\Monetization\Controller\TermsAndConditionsControllerInterface
+   *   Terms and conditions.
+   */
+  public function termsAndConditionsController(): TermsAndConditionsController;
 
 }

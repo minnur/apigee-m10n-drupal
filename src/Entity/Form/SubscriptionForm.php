@@ -26,6 +26,9 @@ use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Url;
+use Drupal\Core\Link;
+use Drupal\apigee_m10n\MonetizationInterface;
 
 /**
  * Subscription entity form.
@@ -33,11 +36,18 @@ use Drupal\Core\Cache\Cache;
 class SubscriptionForm extends MonetizationEntityForm {
 
   /**
-   * Messanger service.
+   * Messenger service.
    *
    * @var \Drupal\Core\Messenger\MessengerInterface
    */
   protected $messenger;
+
+  /**
+   * Monetization factory.
+   *
+   * @var \Drupal\apigee_m10n\MonetizationInterface
+   */
+  protected $monetization;
 
   /**
    * Constructs a SubscriptionEditForm object.
@@ -49,11 +59,14 @@ class SubscriptionForm extends MonetizationEntityForm {
    * @param \Drupal\Component\Datetime\TimeInterface $time
    *   The time service.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
-   *   Messanger service.
+   *   Messenger service.
+   * @param \Drupal\apigee_m10n\MonetizationInterface $monetization
+   *   Monetization factory.
    */
-  public function __construct(EntityRepositoryInterface $entity_repository, EntityTypeBundleInfoInterface $entity_type_bundle_info = NULL, TimeInterface $time = NULL, MessengerInterface $messenger = NULL) {
+  public function __construct(EntityRepositoryInterface $entity_repository, EntityTypeBundleInfoInterface $entity_type_bundle_info = NULL, TimeInterface $time = NULL, MessengerInterface $messenger = NULL, MonetizationInterface $monetization = NULL) {
     parent::__construct($entity_repository, $entity_type_bundle_info, $time);
     $this->messenger = $messenger;
+    $this->monetization = $monetization;
   }
 
   /**
@@ -64,8 +77,42 @@ class SubscriptionForm extends MonetizationEntityForm {
       $container->get('entity.repository'),
       $container->get('entity_type.bundle.info'),
       $container->get('datetime.time'),
-      $container->get('messenger')
+      $container->get('messenger'),
+      $container->get('apigee_m10n.monetization')
     );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildForm(array $form, FormStateInterface $form_state) {
+    $form = parent::buildForm($form, $form_state);
+
+    // We won't ask a user to accept terms and conditions again if
+    // it has been already accepted.
+    if (!$this->monetization->isLatestTermsAndConditionAccepted($this->getEntity()->getDeveloper()->getEmail())) {
+      $tnc = $this->monetization->getLatestTermsAndConditions();
+      $form['tnc'] = [
+        '#type'  => 'checkbox',
+        '#title' => $this->t('%description @link', [
+          '%description' => ($description = $tnc->getDescription()) ? $this->t($description) : $this->t('Accept terms and conditions'),
+          '@link'        => ($link = $tnc->getUrl()) ? Link::fromTextAndUrl($this->t('Terms and Conditions'), Url::fromUri($link))->toString() : '',
+        ]),
+      ];
+    }
+
+    return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    parent::validateForm($form, $form_state);
+    // We only apply checking when terms and conditions checkbox is present in the form.
+    if (!empty($form['tnc']) && empty($form_state->getValue('tnc'))) {
+      $form_state->setErrorByName('tnc', $this->t('Terms and conditions acceptance required.'));
+    }
   }
 
   /**
@@ -85,6 +132,12 @@ class SubscriptionForm extends MonetizationEntityForm {
    */
   public function save(array $form, FormStateInterface $form_state) {
     try {
+      // Accept terms and conditions.
+      if (!empty($form_state->getValue('tnc'))) {
+        // @TODO: maybe we need to handle this a little bit differntly
+        // first make sure developer accepted T&C and then save Subscription entity?
+        $this->monetization->acceptLatestTermsAndConditions($this->getEntity()->getDeveloper()->getEmail());
+      }
       $display_name = $this->entity->getRatePlan()->getDisplayName();
       if ($this->entity->save()) {
         $this->messenger->addStatus($this->t('You have purchased <em>%label</em> plan', [

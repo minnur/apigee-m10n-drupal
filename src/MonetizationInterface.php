@@ -21,6 +21,8 @@
 namespace Drupal\apigee_m10n;
 
 use Apigee\Edge\Api\Monetization\Entity\CompanyInterface;
+use Apigee\Edge\Api\Monetization\Structure\LegalEntityTermsAndConditionsHistoryItem;
+use Apigee\Edge\Api\Monetization\Entity\TermsAndConditions;
 use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -103,5 +105,35 @@ interface MonetizationInterface {
    *   The formatted amount as a string.
    */
   public function formatCurrency(string $amount, string $currency_id): string;
+
+  /**
+   * Check if developer accepted latest terms and conditions.
+   *
+   * @param string $developer_id
+   *   Developer ID.
+   *
+   * @return bool|null
+   *   User terms and conditions acceptance flag.
+   */
+  public function isLatestTermsAndConditionAccepted(string $developer_id): ?bool;
+
+  /**
+   * Get latest terms and condition.
+   *
+   * @return \Apigee\Edge\Api\Monetization\Entity\TermsAndConditions
+   *   Latest term and condition.
+   */
+  public function getLatestTermsAndConditions(): ?TermsAndConditions;
+
+  /**
+   * Accepts a terms and conditions by its id.
+   *
+   * @param string $developer_id
+   *   Developer ID.
+   *
+   * @return \Apigee\Edge\Api\Monetization\Structure\LegalEntityTermsAndConditionsHistoryItem
+   *   Terms and conditions history item.
+   */
+  public function acceptLatestTermsAndConditions(string $developer_id): LegalEntityTermsAndConditionsHistoryItem;
 
 }
