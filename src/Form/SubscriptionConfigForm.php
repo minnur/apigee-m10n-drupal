@@ -54,17 +54,41 @@ class SubscriptionConfigForm extends ConfigFormBase {
     // Get the working configuration.
     $config = $this->config(static::CONFIG_NAME);
 
+    $form['subscribe_label'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Subscribe label.'),
+      '#description' => $this->t('The subscribe label would be shown if the Label is set to display on a subscribe field.'),
+      '#default_value' => $config->get('subscribe_label'),
+    ];
     $form['subscribe_form_title'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Subscribe form page title.'),
-      '#description' => $this->t('The page title to use for the subscribe form page. i.e. "Subscribe to %rate_plan"'),
+      '#description' => $this->t('The page title to use for the subscribe form page. i.e. "Purchase %rate_plan"'),
       '#default_value' => $config->get('subscribe_form_title'),
     ];
     $form['subscribe_button_label'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Subscribe button label.'),
-      '#description' => $this->t('This Label will be used when creating a subscription.'),
+      '#description' => $this->t('This label will be used when creating a subscription.'),
       '#default_value' => $config->get('subscribe_button_label'),
+    ];
+    $form['unsubscribe_question'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Unsubscribe form page title.'),
+      '#description' => $this->t('The page title to use for the unsubscribe form page. i.e. "Cancel %rate_plan"'),
+      '#default_value' => $config->get('unsubscribe_question'),
+    ];
+    $form['unsubscribe_description'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Unsubscribe form description.'),
+      '#description' => $this->t('This descriptions appears as the cancellation subtitle of the the unsubscribe form page.'),
+      '#default_value' => $config->get('unsubscribe_description'),
+    ];
+    $form['unsubscribe_button_label'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Unsubscribe button label.'),
+      '#description' => $this->t('This label will be used when ending a subscription.'),
+      '#default_value' => $config->get('unsubscribe_button_label'),
     ];
 
     return parent::buildForm($form, $form_state);
@@ -77,8 +101,12 @@ class SubscriptionConfigForm extends ConfigFormBase {
     parent::submitForm($form, $form_state);
 
     $this->config(static::CONFIG_NAME)
+      ->set('subscribe_label', $form_state->getValue('subscribe_label'))
       ->set('subscribe_form_title', $form_state->getValue('subscribe_form_title'))
       ->set('subscribe_button_label', $form_state->getValue('subscribe_button_label'))
+      ->set('unsubscribe_question', $form_state->getValue('unsubscribe_question'))
+      ->set('unsubscribe_description', $form_state->getValue('unsubscribe_description'))
+      ->set('unsubscribe_button_label', $form_state->getValue('unsubscribe_button_label'))
       ->save();
   }
 
