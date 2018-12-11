@@ -31,12 +31,19 @@ content:
     label: above
     settings: {  }
     third_party_settings: {  }
+  subscribe:
+    type: apigee_subscribe_form
+    weight: 3
+    region: content
+    label: above
+    settings:
+      label: 'Purchase Plan'
+    third_party_settings: {  }
 hidden:
   advance: true
   contractDuration: true
   contractDurationType: true
   currency: true
-  displayName:  true
   earlyTerminationFee: true
   endDate: true
   freemiumDuration: true
@@ -47,7 +54,6 @@ hidden:
   id: true
   name: true
   organization: true
-  package: true
   paymentDueDays: true
   private: true
   prorate: true

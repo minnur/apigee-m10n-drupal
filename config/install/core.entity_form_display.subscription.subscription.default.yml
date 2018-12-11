@@ -21,6 +21,5 @@ content:
     settings: {  }
     third_party_settings: {  }
 hidden:
-  developer: true
   endDate: true
   ratePlan: true
