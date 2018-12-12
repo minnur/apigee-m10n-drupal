@@ -121,16 +121,16 @@ class Subscription extends FieldableEdgeEntityBase implements SubscriptionInterf
   protected static function propertyToBaseFieldTypeMap(): array {
     return [
       'startDate'            => 'apigee_datestamp',
-      'endDate'              => 'timestamp',
-      'created'              => 'timestamp',
+      'endDate'              => 'apigee_datestamp',
+      'created'              => 'apigee_datestamp',
       'quotaTarget'          => 'integer',
       'ratePlan'             => 'entity_reference',
       'developer'            => 'apigee_monetization_developer',
-      'updated'              => 'timestamp',
-      'renewalDate'          => 'timestamp',
-      'nextCycleStartDate'   => 'timestamp',
-      'nextRecurringFeeDate' => 'timestamp',
-      'prevRecurringFeeDate' => 'timestamp',
+      'updated'              => 'apigee_datestamp',
+      'renewalDate'          => 'apigee_datestamp',
+      'nextCycleStartDate'   => 'apigee_datestamp',
+      'nextRecurringFeeDate' => 'apigee_datestamp',
+      'prevRecurringFeeDate' => 'apigee_datestamp',
     ];
   }
 
@@ -275,15 +275,12 @@ class Subscription extends FieldableEdgeEntityBase implements SubscriptionInterf
 
   /**
    * {@inheritdoc}
-   *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   public function getRatePlan(): RatePlanInterface {
     // Return the drupal entity for entity references.
     if (empty($this->rate_plan) && !empty($this->decorated()) && $sdk_rate_plan = $this->decorated()->getRatePlan()) {
       /** @var \Apigee\Edge\Api\Monetization\Entity\RatePlanInterface $sdk_rate_plan */
-      $this->rate_plan = RatePlan::loadById($sdk_rate_plan->getPackage()->id(), $sdk_rate_plan->id());
+      $this->rate_plan = RatePlan::createFrom($sdk_rate_plan);
     }
 
     return $this->rate_plan;

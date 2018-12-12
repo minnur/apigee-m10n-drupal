@@ -90,13 +90,13 @@ class PackagesController extends ControllerBase {
   /**
    * Gets a list of available packages for this user.
    *
-   * @param \Drupal\user\UserInterface|null $user
+   * @param \Drupal\user\UserInterface $user
    *   The drupal user/developer.
    *
    * @return array
    *   The pager render array.
    */
-  public function catalogPage(UserInterface $user = NULL) {
+  public function catalogPage(UserInterface $user) {
     // Get the package controller.
     $package_controller = $this->controller_factory->apiPackageController();
     // Load purchased packages for comparison.
@@ -136,15 +136,7 @@ class PackagesController extends ControllerBase {
    *   The rate plan controller.
    */
   protected function packageRatePlanController($package_id): RatePlanControllerInterface {
-    // Use static caching.
-    static $controllers;
-
-    // Controlelrs should be cached per package id.
-    if (!isset($controllers[$package_id])) {
-      $controllers[$package_id] = $this->controller_factory->packageRatePlanController($package_id);
-    }
-
-    return $controllers[$package_id];
+    return $this->controller_factory->ratePlanController($package_id);
   }
 
 }
