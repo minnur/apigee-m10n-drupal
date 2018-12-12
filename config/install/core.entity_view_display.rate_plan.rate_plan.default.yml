@@ -32,7 +32,7 @@ content:
     settings: {  }
     third_party_settings: {  }
   subscribe:
-    type: apigee_subscribe_form
+    type: apigee_subscribe_link
     weight: 3
     region: content
     label: above
