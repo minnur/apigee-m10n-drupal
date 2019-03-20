@@ -34,13 +34,6 @@ use Drupal\Core\Form\FormStateInterface;
 class CompanyTermsAndConditionsWidget extends TermsAndConditionsWidget implements ContainerFactoryPluginInterface {
 
   /**
-   * Monetization factory.
-   *
-   * @var \Drupal\apigee_m10n\MonetizationInterface
-   */
-  protected $monetization;
-
-  /**
    * Teams Monetization factory.
    *
    * @var \Drupal\apigee_m10n_teams\MonetizationTeamsInterface
