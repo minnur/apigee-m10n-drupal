@@ -36,7 +36,7 @@ class PackageControllerFunctionalTest extends MonetizationFunctionalJavascriptTe
    *
    * @var \Drupal\user\UserInterface
    */
-  protected $develoepr;
+  protected $developer;
 
   /**
    * {@inheritdoc}
@@ -49,12 +49,12 @@ class PackageControllerFunctionalTest extends MonetizationFunctionalJavascriptTe
   protected function setUp() {
     parent::setUp();
 
-    $this->develoepr = $this->createAccount([
+    $this->developer = $this->createAccount([
       'view package',
       'view rate_plan',
       'view subscription',
     ]);
-    $this->drupalLogin($this->develoepr);
+    $this->drupalLogin($this->developer);
   }
 
   /**
@@ -69,25 +69,33 @@ class PackageControllerFunctionalTest extends MonetizationFunctionalJavascriptTe
     ];
     $sdk_packges = [];
     $rate_plans = [];
+    $rate_plan_single = NULL;
     // Create rate plans for each package.
     foreach ($packages as $package) {
       $rate_plans[$package->id()] = $this->createPackageRatePlan($package);
+      if ($rate_plan_single === NULL) {
+        $rate_plan_single = $rate_plans[$package->id()];
+      }
       $sdk_packges[] = $package->decorated();
     }
 
     $this->queueOrg();
+    $this->stack->queueMockResponse(['get_developer_subscriptions' => []]);
     $this->stack
       ->queueMockResponse(['get_monetization_packages' => ['packages' => $sdk_packges]]);
-
     foreach ($packages as $package) {
       foreach ($package->decorated()->getApiProducts() as $api_product) {
+        $this->stack->queueMockResponse(['get_developer_subscriptions' => []]);
         $this->stack->queueMockResponse(['api_product' => ['product' => $api_product]]);
       }
-      $this->stack->queueMockResponse(['get_monetization_package_plans' => ['plans' => [$rate_plans[$package->id()]]]]);
+      $this->stack->queueMockResponse(['get_developer_subscriptions' => []]);
+      $this->stack->queueMockResponse([
+        'get_monetization_package_plans' => ['plans' => [$rate_plans[$package->id()]]]
+      ]);
     }
 
     $this->drupalGet(Url::fromRoute('apigee_monetization.packages', [
-      'user' => $this->develoepr->id(),
+      'user' => $this->developer->id(),
     ]));
 
     $this->assertCssElementContains('h1.page-title', 'Packages');

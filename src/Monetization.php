@@ -432,13 +432,16 @@ class Monetization implements MonetizationInterface {
     $subscriptions = $subscriptions_cache ? $subscriptions_cache->data : NULL;
 
     if (!$subscriptions) {
-      $subscriptions = Subscription::loadByDeveloperId($developer_id);
-      $expire_time = new \DateTime('now + 5 minutes');
-      $this->cache->set($cid, $subscriptions, $expire_time->getTimestamp());
+      if ($subscriptions = Subscription::loadByDeveloperId($developer_id)) {
+        $expire_time = new \DateTime('now + 5 minutes');
+        $this->cache->set($cid, $subscriptions, $expire_time->getTimestamp());
+      }
     }
-    foreach ($subscriptions as $subscription) {
-      if ($subscription->getRatePlan()->id() == $rate_plan->id() && $subscription->isSubscriptionActive()) {
-        return TRUE;
+    else {
+      foreach ($subscriptions as $subscription) {
+        if ($subscription->getRatePlan()->id() == $rate_plan->id() && $subscription->isSubscriptionActive()) {
+          return TRUE;
+        }
       }
     }
     return FALSE;

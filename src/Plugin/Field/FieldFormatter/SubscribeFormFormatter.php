@@ -155,9 +155,9 @@ class SubscribeFormFormatter extends FormatterBase implements ContainerFactoryPl
       if ($this->monetization->isDeveloperAlreadySubscribed($developer_id, $rate_plan)) {
         $label = \Drupal::config(SubscriptionConfigForm::CONFIG_NAME)->get('already_purchased_label');
         return [
-          '#markup' => $this->t($label ?? 'Already purchased %rate_plan', [
+          '#markup' => '<div class="apigee-plan-already-purchased">' . $this->t($label ?? 'Already purchased %rate_plan', [
             '%rate_plan' => $rate_plan->getDisplayName()
-          ])
+          ]) . '</div>'
         ];
       }
       $subscription = Subscription::create([
