@@ -428,7 +428,6 @@ class Monetization implements MonetizationInterface {
   public function isDeveloperAlreadySubscribed(string $developer_id, RatePlanInterface $rate_plan): bool {
     // Use cached result if available.
     $cid = "apigee_m10n:dev:subscriptions:{$developer_id}";
-    ;
 
     if (!($subscriptions_cache = $this->cache->get($cid))) {
       if ($subscriptions = Subscription::loadByDeveloperId($developer_id)) {
