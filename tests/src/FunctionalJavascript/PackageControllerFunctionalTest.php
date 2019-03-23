@@ -36,7 +36,7 @@ class PackageControllerFunctionalTest extends MonetizationFunctionalJavascriptTe
    *
    * @var \Drupal\user\UserInterface
    */
-  protected $developer;
+  protected $develoepr;
 
   /**
    * {@inheritdoc}
@@ -49,12 +49,12 @@ class PackageControllerFunctionalTest extends MonetizationFunctionalJavascriptTe
   protected function setUp() {
     parent::setUp();
 
-    $this->developer = $this->createAccount([
+    $this->develoepr = $this->createAccount([
       'view package',
       'view rate_plan',
       'view subscription',
     ]);
-    $this->drupalLogin($this->developer);
+    $this->drupalLogin($this->develoepr);
   }
 
   /**
@@ -87,7 +87,7 @@ class PackageControllerFunctionalTest extends MonetizationFunctionalJavascriptTe
     }
 
     $this->drupalGet(Url::fromRoute('apigee_monetization.packages', [
-      'user' => $this->developer->id(),
+      'user' => $this->develoepr->id(),
     ]));
 
     $this->assertCssElementContains('h1.page-title', 'Packages');
