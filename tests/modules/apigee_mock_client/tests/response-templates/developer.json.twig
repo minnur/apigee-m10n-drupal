@@ -7,32 +7,31 @@
  *   @code {% include 'developer.json.twig' %} @endcode
  *
  * Variables:
- * - developer: An Apigee Edge developer entity.
+ * - developer: The user account for the developer.
  */
 #}
 {
     "apps" : [ ],
     "companies" : [ ],
-    "email" : "{{ developer.email }}",
-    "developerId" : "{{ developer.uuid|default('00112233-4455-6677-8899-aabbccddeeff') }}",
-    "firstName" : "{{ developer.firstName }}",
-    "lastName" : "{{ developer.lastName }}",
-    "userName" : "{{ developer.userName }}",
-    "organizationName" : "{{ org_name|default('example') }}",
-    "isCompany": false,
+    "email" : "{{ developer.mail.value }}",
+    "developerId" : "{{ developer.uuid.value }}",
+    "firstName" : "{{ developer.first_name.value }}",
+    "lastName" : "{{ developer.last_name.value }}",
+    "userName" : "{{ developer.name.value }}",
+    "organizationName" : "{{ org_name }}",
     "status" : "active",
     "attributes" : [
         {
             "name" : "MINT_BILLING_TYPE",
-            "value" : "{{ developer.attributeValue('MINT_BILLING_TYPE')|default('PREPAID') }}"
+            "value" : "PREPAID"
         },
         {
             "name" : "MINT_DEVELOPER_TYPE",
-            "value" : "{{ developer.attributeValue('MINT_DEVELOPER_TYPE')|default('UNTRUSTED') }}"
+            "value" : "UNTRUSTED"
         },
         {
             "name": "MINT_DEVELOPER_LEGAL_NAME",
-            "value": "{{ developer.attributeValue("MINT_DEVELOPER_LEGAL_NAME") }}"
+            "value": "{{ developer.mail.value }}"
         } ],
     "createdAt" : 1537547358558,
     "createdBy" : "user@example.com",
