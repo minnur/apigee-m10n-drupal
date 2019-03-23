@@ -191,11 +191,9 @@ class PackageControllerKernelTest extends MonetizationKernelTestBase {
       foreach ($package->getApiProducts() as $api_product) {
         if (!$this->container->has('apigee_edge.controller.cache.api_product')) {
           // TODO: Remove this queue when `apigee_edge` beta 2 is released.
-          $this->stack->queueMockResponse(['get_developer_subscriptions' => []]);
           $this->stack->queueMockResponse(['api_product' => ['product' => $api_product]]);
         }
       }
-      $this->stack->queueMockResponse(['get_developer_subscriptions' => []]);
       $this->stack->queueMockResponse(['get_monetization_package_plans' => ['plans' => [$rate_plans[$package->id()]]]]);
     }
 
