@@ -21,9 +21,9 @@
 
 namespace Drupal\apigee_m10n_teams;
 
-use Apigee\Edge\Api\Monetization\Entity\TermsAndConditionsInterface;
 use Apigee\Edge\Api\Monetization\Structure\LegalEntityTermsAndConditionsHistoryItem;
 use Drupal\apigee_edge_teams\Entity\TeamInterface;
+use Drupal\apigee_m10n_teams\Entity\TeamAwareRatePlan;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Session\AccountInterface;
 
@@ -145,5 +145,18 @@ interface MonetizationTeamsInterface {
    *   Terms and conditions history item.
    */
   public function acceptLatestTermsAndConditions(string $company_id): ?LegalEntityTermsAndConditionsHistoryItem;
+
+  /**
+   * Check if company accepted latest terms and conditions.
+   *
+   * @param string $company_id
+   *   Team ID.
+   * @param \Drupal\apigee_m10n_teams\Entity\TeamAwareRatePlan $rate_plan
+   *   Rate plan entity.
+   *
+   * @return bool|null
+   *   Check if company is subscribed to a plan.
+   */
+  public function isCompanyAlreadySubscribed(string $company_id, TeamAwareRatePlan $rate_plan): bool;
 
 }

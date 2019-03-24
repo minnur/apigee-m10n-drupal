@@ -40,6 +40,7 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Cache\CacheBackendInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -83,6 +84,13 @@ class MonetizationTeams implements MonetizationTeamsInterface {
   protected $logger;
 
   /**
+   * The Cache backend.
+   *
+   * @var \Drupal\Core\Cache\CacheBackendInterface
+   */
+  private $cache;
+
+  /**
    * MonetizationTeams constructor.
    *
    * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
@@ -93,12 +101,15 @@ class MonetizationTeams implements MonetizationTeamsInterface {
    *   The monetization service.
    * @param \Psr\Log\LoggerInterface $logger
    *   The logger.
+   * @param \Drupal\Core\Cache\CacheBackendInterface $cache
+   *   The Cache backend.
    */
-  public function __construct(RouteMatchInterface $route_match, TeamSdkControllerFactoryInterface $sdk_controller_factory, MonetizationInterface $monetization, LoggerInterface $logger) {
-    $this->route_match = $route_match;
+  public function __construct(RouteMatchInterface $route_match, TeamSdkControllerFactoryInterface $sdk_controller_factory, MonetizationInterface $monetization, LoggerInterface $logger, CacheBackendInterface $cache) {
+    $this->route_match            = $route_match;
     $this->sdk_controller_factory = $sdk_controller_factory;
-    $this->monetization = $monetization;
-    $this->logger = $logger;
+    $this->monetization           = $monetization;
+    $this->logger                 = $logger;
+    $this->cache                  = $cache;
   }
 
   /**
@@ -298,6 +309,29 @@ class MonetizationTeams implements MonetizationTeamsInterface {
       $this->logger->error('Unable to accept latest TnC: ' . $t->getMessage());
     }
     return NULL;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isCompanyAlreadySubscribed(string $company_id, TeamAwareRatePlan $rate_plan): bool {
+    // Use cached result if available.
+    $cid = "apigee_m10n:company:subscriptions:{$company_id}";
+
+    if (!($subscriptions_cache = $this->cache->get($cid))) {
+      if ($subscriptions = TeamRouteAwareSubscription::loadByTeamId($company_id)) {
+        $expire_time = new \DateTime('now + 5 minutes');
+        $this->cache->set($cid, $subscriptions, $expire_time->getTimestamp());
+      }
+    }
+    else {
+      foreach ($subscriptions_cache->data as $subscription) {
+        if ($subscription->decorated()->getRatePlan()->id() == $rate_plan->id() && $subscription->isSubscriptionActive()) {
+          return TRUE;
+        }
+      }
+    }
+    return FALSE;
   }
 
 }
