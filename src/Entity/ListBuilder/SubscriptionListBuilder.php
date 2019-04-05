@@ -215,7 +215,7 @@ abstract class SubscriptionListBuilder extends EntityListBuilder implements Cont
           'class' => ['subscription-start-date'],
         ],
         'end_date' => [
-          'data' => $entity->getEndDate() ? $entity->getEndDate()->format('m/d/Y') : NULL,
+          'data' => $entity->getEndDate() ? $this->getAdjustedEndDate($entity) : NULL,
           'class' => ['subscription-end-date'],
         ],
         'plan_end_date' => [
@@ -266,6 +266,29 @@ abstract class SubscriptionListBuilder extends EntityListBuilder implements Cont
     }
 
     return $operations;
+  }
+
+  /**
+   * Adjust end date output.
+   *
+   * @param \Drupal\apigee_m10n\Entity\SubscriptionInterface $entity
+   *   The subscription entity.
+   *
+   * @return string
+   *   Formatted rate plan end date.
+   */
+  protected function getAdjustedEndDate($entity) {
+    $org_timezone = $entity->getRatePlan()->getOrganization()->getTimezone();
+    $today = new \DateTime('today', $org_timezone);
+    $start_date = $entity->getStartDate();
+    $end_date = $entity->getEndDate();
+    // COMMERCE-558: If there is an end date and it has already started,
+    // and the plan was also ended today, shift end_date to start_date.
+    // @TODO: Look into this, I believe this logic is wrong -cnovak
+    if (is_object($end_date) && $start_date <= $today && $end_date < $start_date) {
+      $end_date = $start_date;
+    }
+    return $end_date ? $end_date->format('m/d/Y') : '';
   }
 
   /**
