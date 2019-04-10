@@ -19,7 +19,6 @@
 
 namespace Drupal\Tests\apigee_m10n\Functional;
 
-use Drupal\apigee_m10n\Entity\Subscription;
 use Drupal\Core\Url;
 use Drupal\user\Entity\Role;
 
@@ -49,11 +48,16 @@ class SubscriptionListTest extends MonetizationFunctionalTestBase {
   public function setUp() {
     parent::setUp();
 
-    // If the user doesn't have the "view subscription" permission, they should
+    // If the user doesn't have the "view own subscription" permission, they should
     // get access denied.
     $this->developer = $this->createAccount([]);
 
     $this->drupalLogin($this->developer);
+
+    // Set the default timezone for formatting the start  date.
+    $subscription_default_display = \Drupal::config('core.entity_view_display.subscription.subscription.default')->get('content');
+    $subscription_default_display['startDate']['settings']['timezone'] = 'America/Los_Angeles';
+    \Drupal::configFactory()->getEditable('core.entity_view_display.subscription.subscription.default')->set('content', $subscription_default_display)->save();
   }
 
   /**
@@ -73,9 +77,9 @@ class SubscriptionListTest extends MonetizationFunctionalTestBase {
    * @throws \Exception
    */
   public function testSubscriptionListView() {
-    // Add the view subscription permission to the current user.
+    // Add the view own subscription permission to the current user.
     $user_roles = $this->developer->getRoles();
-    $this->grantPermissions(Role::load(reset($user_roles)), ['view subscription']);
+    $this->grantPermissions(Role::load(reset($user_roles)), ['view own subscription']);
 
     $package = $this->createPackage();
     $rate_plan = $this->createPackageRatePlan($package);
@@ -98,7 +102,7 @@ class SubscriptionListTest extends MonetizationFunctionalTestBase {
     $this->assertCssElementContains('.subscription-row:nth-child(1) td.package-name', $rate_plan->getPackage()->getDisplayName());
     $this->assertCssElementContains('.subscription-row:nth-child(1) td.products', $rate_plan->getPackage()->getApiProducts()[0]->getDisplayName());
     $this->assertCssElementContains('.subscription-row:nth-child(1) td.rate-plan-name', $rate_plan->getDisplayName());
-    $this->assertCssElementContains('.subscription-row:nth-child(1) td.subscription-start-date', $subscription->getStartDate()->format('m/d/Y'));
+    $this->assertCssElementContains('.subscription-row:nth-child(1) td.subscription-start-date', $subscription->getStartDate()->setTimezone(new \DateTimeZone('America/Los_Angeles'))->format('m/d/Y'));
     static::assertSame($this->cssSelect('.subscription-row:nth-child(1) td.subscription-end-date')[0]->getText(), '');
 
   }
