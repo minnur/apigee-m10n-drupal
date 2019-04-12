@@ -64,7 +64,9 @@ use Drupal\user\UserInterface;
  */
 class Subscription extends FieldableEdgeEntityBase implements SubscriptionInterface, EntityOwnerInterface {
 
-  use EndDatePropertyAwareDecoratorTrait;
+  use EndDatePropertyAwareDecoratorTrait {
+    getEndDate as traitGetEndDate;
+  }
   use StartDatePropertyAwareDecoratorTrait;
 
   public const ENTITY_TYPE_ID = 'subscription';
@@ -391,6 +393,35 @@ class Subscription extends FieldableEdgeEntityBase implements SubscriptionInterf
   public function setOwner(UserInterface $account) {
     // The owner is not settable after instantiation.
     return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getEndDate(): ?\DateTimeImmutable {
+    return $this->getAdjustedEndDate();
+  }
+
+  /**
+   * Adjust the date so it never ends before it starts.
+   *
+   * @return \DateTimeImmutable|null
+   *   The adjusted end date.
+   *
+   * @throws \Exception
+   */
+  protected function getAdjustedEndDate() : ?\DateTimeImmutable {
+    $org_timezone = $this->getRatePlan()->getOrganization()->getTimezone();
+    $today = new \DateTime('today', $org_timezone);
+    $start_date = $this->getStartDate();
+    $end_date = $this->traitGetEndDate();
+    // COMMERCE-558: If there is an end date and it has already started,
+    // and the plan was also ended today, shift end_date to start_date.
+    // @TODO: Look into this, I believe this logic is wrong -cnovak
+    if (is_object($end_date) && $start_date <= $today && $end_date < $start_date) {
+      $end_date = $start_date;
+    }
+    return $end_date;
   }
 
 }

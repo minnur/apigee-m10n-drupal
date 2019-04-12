@@ -196,6 +196,14 @@ abstract class SubscriptionListBuilder extends EntityListBuilder implements Cont
       return $product->getDisplayName();
     }, $rate_plan->getPackage()->getApiProducts()));
 
+    $date_display_settings = [
+      'label' => 'hidden',
+      'settings' => [
+        'date_format' => 'custom',
+        'custom_date_format' => 'm/d/Y',
+      ],
+    ];
+
     return [
       'data' => [
         'plan' => [
@@ -211,19 +219,19 @@ abstract class SubscriptionListBuilder extends EntityListBuilder implements Cont
           'class' => ['products'],
         ],
         'start_date' => [
-          'data' => $entity->getStartDate()->format('m/d/Y'),
+          'data' => $entity->get('startDate')->view($date_display_settings),
           'class' => ['subscription-start-date'],
         ],
         'end_date' => [
-          'data' => $entity->getEndDate() ? $this->getAdjustedEndDate($entity) : NULL,
+          'data' => $entity->getEndDate() ? $entity->get('endDate')->view($date_display_settings) : NULL,
           'class' => ['subscription-end-date'],
         ],
         'plan_end_date' => [
-          'data' => $rate_plan->getEndDate() ? $rate_plan->getEndDate()->format('m/d/Y') : NULL,
+          'data' => $rate_plan->getEndDate() ? $entity->get('endDate')->view($date_display_settings) : NULL,
           'class' => ['rate-plan-end-date'],
         ],
         'renewal_date' => [
-          'data' => $entity->getRenewalDate() ? $entity->getRenewalDate()->format('m/d/Y') : NULL,
+          'data' => $entity->getRenewalDate() ? $entity->get('renewalDate')->view($date_display_settings) : NULL,
           'class' => ['subscription-renewal-date'],
         ],
         'status' => [
@@ -269,29 +277,6 @@ abstract class SubscriptionListBuilder extends EntityListBuilder implements Cont
     }
 
     return $operations;
-  }
-
-  /**
-   * Adjust end date output.
-   *
-   * @param \Drupal\apigee_m10n\Entity\SubscriptionInterface $entity
-   *   The subscription entity.
-   *
-   * @return string
-   *   Formatted rate plan end date.
-   */
-  protected function getAdjustedEndDate($entity) {
-    $org_timezone = $entity->getRatePlan()->getOrganization()->getTimezone();
-    $today = new \DateTime('today', $org_timezone);
-    $start_date = $entity->getStartDate();
-    $end_date = $entity->getEndDate();
-    // COMMERCE-558: If there is an end date and it has already started,
-    // and the plan was also ended today, shift end_date to start_date.
-    // @TODO: Look into this, I believe this logic is wrong -cnovak
-    if (is_object($end_date) && $start_date <= $today && $end_date < $start_date) {
-      $end_date = $start_date;
-    }
-    return $end_date ? $end_date->format('m/d/Y') : '';
   }
 
   /**
