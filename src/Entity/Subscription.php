@@ -411,17 +411,19 @@ class Subscription extends FieldableEdgeEntityBase implements SubscriptionInterf
    * @throws \Exception
    */
   protected function getAdjustedEndDate() : ?\DateTimeImmutable {
-    $org_timezone = $this->getRatePlan()->getOrganization()->getTimezone();
-    $today = new \DateTime('today', $org_timezone);
-    $start_date = $this->getStartDate();
-    $end_date = $this->traitGetEndDate();
-    // COMMERCE-558: If there is an end date and it has already started,
-    // and the plan was also ended today, shift end_date to start_date.
-    // @TODO: Look into this, I believe this logic is wrong -cnovak
-    if (is_object($end_date) && $start_date <= $today && $end_date < $start_date) {
-      $end_date = $start_date;
+    $today = new \DateTime('today', $this->getRatePlan()->getOrganization()->getTimezone());
+    // If the plan has ended, make sure the end date doesn't come before the
+    // start date.
+    if (($end_date = $this->traitGetEndDate())
+      && ($start_date = $this->getStartDate())
+      && $start_date <= $today
+      && $end_date < $start_date
+    ) {
+      return $start_date;
     }
-    return $end_date;
+    else {
+      return $end_date;
+    }
   }
 
 }
