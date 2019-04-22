@@ -401,6 +401,7 @@ trait ApigeeMonetizationTestTrait {
    */
   protected function createSubscription(UserInterface $user, RatePlanInterface $rate_plan): SubscriptionInterface {
     $start_date = new \DateTimeImmutable('today', new \DateTimeZone($this->org_default_timezone));
+    $end_date = new \DateTimeImmutable('+1 day', new \DateTimeZone($this->org_default_timezone));
     $subscription = Subscription::create([
       'ratePlan' => $rate_plan,
       'developer' => new Developer([
@@ -408,6 +409,7 @@ trait ApigeeMonetizationTestTrait {
         'name' => $user->getDisplayName(),
       ]),
       'startDate' => $start_date,
+      'endDate' => $end_date,
     ]);
 
     $this->stack->queueMockResponse(['subscription' => ['subscription' => $subscription]]);
