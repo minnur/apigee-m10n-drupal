@@ -23,7 +23,7 @@
     "created": "{{ subscription.created|date('Y-m-d h:m:s')|default('2018-07-26 00:00:00') }}",
     "developer": {% include 'monetization-developer.json.twig' with {"developer": subscription.developer } %},
     {% if subscription.endDate %}
-        "endDate": "{{ subscription.endDate|date('Y-m-d h:m:s') }}",
+        "endDate": "{{ subscription.endDate|date('Y-m-d 00:00:00')|default(date('+1 day')|date('Y-m-d 00:00:00')) }}",
     {% endif %}
     "id": "{{ subscription.id|default("4321dcba-1234abcd") }}",
     "nextCycleStartDate": "{{ subscription.nextCycleStartDate|date('Y-m-d h:m:s')|default('2018-07-26 00:00:00') }}",
