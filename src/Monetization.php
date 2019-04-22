@@ -426,8 +426,8 @@ class Monetization implements MonetizationInterface {
    * {@inheritdoc}
    */
   public function isDeveloperAlreadySubscribed(string $developer_id, RatePlanInterface $rate_plan): bool {
-    // @TODO: Handle subscription caching per developer ont he storage level.
     // Use cached result if available.
+    // TODO: Handle subscription caching per developer ont he storage level.
     // See: \Drupal\apigee_m10n\Entity\Storage\SubscriptionStorage::loadByDeveloperId()
     $cid = "apigee_m10n:dev:subscriptions:{$developer_id}";
 
