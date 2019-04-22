@@ -188,6 +188,13 @@ abstract class SubscriptionListBuilder extends EntityListBuilder implements Cont
    * {@inheritdoc}
    */
   public function buildRow(EntityInterface $entity) {
+
+    // Do not show accepted plans that have no end date, otherwise in some cases you may
+    // see duplicate accepted rate plans.
+    if (!$entity->getEndDate()) {
+      return [];
+    }
+
     /** @var \Drupal\apigee_m10n\Entity\SubscriptionInterface $entity */
     $rate_plan = $entity->getRatePlan();
 
